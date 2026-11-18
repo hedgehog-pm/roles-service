@@ -1,0 +1,25 @@
+package domain
+
+const (
+	WorkspaceProjectCreate     PermissionCode = "workspace.project.create"
+	WorkspaceProjectView       PermissionCode = "workspace.project.view"
+	WorkspaceProjectViewAll    PermissionCode = "workspace.project.view_all"
+	WorkspaceProjectEditAll    PermissionCode = "workspace.project.edit_all"
+	WorkspaceProjectDeleteAll  PermissionCode = "workspace.project.delete_all"
+	WorkspaceRoleView          PermissionCode = "workspace.role.view"
+	WorkspaceRoleCreate        PermissionCode = "workspace.role.create"
+	WorkspaceRoleEdit          PermissionCode = "workspace.role.edit"
+	WorkspaceRoleDelete        PermissionCode = "workspace.role.delete"
+	WorkspaceRoleAssign        PermissionCode = "workspace.role.assign"
+	WorkspaceRoleUnassign      PermissionCode = "workspace.role.unassign"
+	WorkspaceParticipantView   PermissionCode = "workspace.participant.view"
+	WorkspaceParticipantAdd    PermissionCode = "workspace.participant.add"
+	WorkspaceParticipantRemove PermissionCode = "workspace.participant.remove"
+	WorkspaceInvitationCreate  PermissionCode = "workspace.invitation.create"
+	WorkspaceInvitationView    PermissionCode = "workspace.invitation.view"
+	WorkspaceInvitationEdit    PermissionCode = "workspace.invitation.edit"
+	WorkspaceInvitationDelete  PermissionCode = "workspace.invitation.delete"
+	WorkspaceView              PermissionCode = "workspace.view"
+	WorkspaceEdit              PermissionCode = "workspace.edit"
+	WorkspaceDelete            PermissionCode = "workspace.delete"
+)
