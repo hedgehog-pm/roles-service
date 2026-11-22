@@ -14,11 +14,6 @@ func (s PermissionSet) ScopeType() ScopeType {
 	return s.scopeType
 }
 
-func (s PermissionSet) Contains(code PermissionCode) bool {
-	_, exists := s.codes[code]
-	return exists
-}
-
 func (s PermissionSet) Codes() []PermissionCode {
 	result := make([]PermissionCode, 0, len(s.codes))
 
