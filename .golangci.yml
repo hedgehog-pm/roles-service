@@ -247,6 +247,8 @@ linters:
         database-isolation:
           list-mode: original
           files:
+            - "**/internal/roles/domain/**"
+            - "**/internal/roles/application/**"
             - "**/internal/domain/**"
             - "**/internal/service/**"
             - "**/internal/usecase/**"

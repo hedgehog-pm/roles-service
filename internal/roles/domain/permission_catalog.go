@@ -73,14 +73,14 @@ func (c PermissionCatalog) NewSet(
 	for _, code := range codes {
 		descriptor, exists := c.entries[code]
 		if !exists {
-			return PermissionSet{}, NewError(CodeInvalidInput, fmt.Sprintf(
+			return PermissionSet{}, FieldError(CodeUnknownPermission, "permission_codes", fmt.Sprintf(
 				"unknown permission code: %s",
 				code,
 			))
 		}
 
 		if descriptor.ScopeType != scopeType {
-			return PermissionSet{}, NewError(CodeInvalidInput, fmt.Sprintf(
+			return PermissionSet{}, FieldError(CodePermissionScope, "permission_codes", fmt.Sprintf(
 				"permission %s belongs to scope %s, not %s",
 				code,
 				descriptor.ScopeType,

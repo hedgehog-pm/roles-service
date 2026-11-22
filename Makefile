@@ -27,3 +27,8 @@ generate-sql:
 
 migrate:
 	go run ./cmd/migrate
+
+.PHONY: generate-api
+generate-api:
+	go tool oapi-codegen -config api/server/roles/oapi-codegen.yaml api/server/roles/openapi.yaml
+	$(MAKE) check-generated

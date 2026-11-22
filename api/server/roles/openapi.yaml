@@ -1,0 +1,1263 @@
+components:
+    schemas:
+        AssignmentPage:
+            properties:
+                items:
+                    items:
+                        $ref: '#/components/schemas/RoleAssignment'
+                    type: array
+                limit:
+                    type: integer
+                offset:
+                    type: integer
+                total:
+                    format: int64
+                    type: integer
+            required:
+                - items
+                - total
+                - limit
+                - offset
+            type: object
+        CreateRole:
+            additionalProperties: false
+            properties:
+                name:
+                    maxLength: 200
+                    minLength: 1
+                    pattern: \S
+                    type: string
+                permission_codes:
+                    items:
+                        $ref: '#/components/schemas/PermissionCode'
+                    minItems: 1
+                    type: array
+                    uniqueItems: true
+                scope:
+                    $ref: '#/components/schemas/Scope'
+            required:
+                - name
+                - scope
+                - permission_codes
+            type: object
+        CreateTemplate:
+            additionalProperties: false
+            properties:
+                name:
+                    maxLength: 200
+                    minLength: 1
+                    pattern: \S
+                    type: string
+                permission_codes:
+                    items:
+                        $ref: '#/components/schemas/PermissionCode'
+                    minItems: 1
+                    type: array
+                    uniqueItems: true
+                system_id:
+                    $ref: '#/components/schemas/ID'
+                target_scope_type:
+                    $ref: '#/components/schemas/ScopeType'
+            required:
+                - name
+                - system_id
+                - target_scope_type
+                - permission_codes
+            type: object
+        Error:
+            properties:
+                code:
+                    description: '400: invalid_input, unknown_permission_code, permission_scope_mismatch, empty_permissions. 404: not_found. 409: version_conflict. 500: internal_error. Authentication: unauthorized (401), unavailable (503).'
+                    type: string
+                details:
+                    items:
+                        $ref: '#/components/schemas/ErrorDetail'
+                    type: array
+                message:
+                    type: string
+            required:
+                - code
+                - message
+            type: object
+        ErrorDetail:
+            properties:
+                code:
+                    type: string
+                field:
+                    type: string
+                message:
+                    type: string
+            required:
+                - field
+                - code
+                - message
+            type: object
+        ID:
+            maximum: 2147483647
+            minimum: 1
+            type: integer
+        Permission:
+            additionalProperties: false
+            properties:
+                code:
+                    $ref: '#/components/schemas/PermissionCode'
+                description:
+                    type: string
+                scope_type:
+                    $ref: '#/components/schemas/ScopeType'
+                title:
+                    type: string
+            required:
+                - code
+                - scope_type
+                - title
+                - description
+            type: object
+        PermissionCode:
+            minLength: 1
+            type: string
+        Role:
+            additionalProperties: false
+            properties:
+                created_at:
+                    format: date-time
+                    type: string
+                created_by:
+                    $ref: '#/components/schemas/ID'
+                id:
+                    $ref: '#/components/schemas/ID'
+                name:
+                    minLength: 1
+                    type: string
+                permissions:
+                    items:
+                        $ref: '#/components/schemas/Permission'
+                    type: array
+                scope:
+                    $ref: '#/components/schemas/Scope'
+                updated_at:
+                    format: date-time
+                    type: string
+                version:
+                    format: int64
+                    minimum: 1
+                    type: integer
+            required:
+                - id
+                - name
+                - permissions
+                - version
+                - created_by
+                - created_at
+                - updated_at
+                - scope
+            type: object
+        RoleAssignment:
+            additionalProperties: false
+            properties:
+                assigned_at:
+                    format: date-time
+                    type: string
+                assigned_by:
+                    $ref: '#/components/schemas/ID'
+                role_id:
+                    $ref: '#/components/schemas/ID'
+                user_id:
+                    $ref: '#/components/schemas/ID'
+            required:
+                - role_id
+                - user_id
+                - assigned_by
+                - assigned_at
+            type: object
+        RolePage:
+            properties:
+                items:
+                    items:
+                        $ref: '#/components/schemas/Role'
+                    type: array
+                limit:
+                    type: integer
+                offset:
+                    type: integer
+                total:
+                    format: int64
+                    type: integer
+            required:
+                - items
+                - total
+                - limit
+                - offset
+            type: object
+        RoleTemplate:
+            additionalProperties: false
+            properties:
+                created_at:
+                    format: date-time
+                    type: string
+                created_by:
+                    $ref: '#/components/schemas/ID'
+                id:
+                    $ref: '#/components/schemas/ID'
+                name:
+                    minLength: 1
+                    type: string
+                permissions:
+                    items:
+                        $ref: '#/components/schemas/Permission'
+                    type: array
+                system_id:
+                    $ref: '#/components/schemas/ID'
+                target_scope_type:
+                    $ref: '#/components/schemas/ScopeType'
+                updated_at:
+                    format: date-time
+                    type: string
+                version:
+                    format: int64
+                    minimum: 1
+                    type: integer
+            required:
+                - id
+                - name
+                - permissions
+                - version
+                - created_by
+                - created_at
+                - updated_at
+                - system_id
+                - target_scope_type
+            type: object
+        Scope:
+            additionalProperties: false
+            properties:
+                id:
+                    $ref: '#/components/schemas/ID'
+                type:
+                    $ref: '#/components/schemas/ScopeType'
+            required:
+                - type
+                - id
+            type: object
+        ScopeType:
+            enum:
+                - system
+                - workspace
+                - project
+            type: string
+        TemplatePage:
+            properties:
+                items:
+                    items:
+                        $ref: '#/components/schemas/RoleTemplate'
+                    type: array
+                limit:
+                    type: integer
+                offset:
+                    type: integer
+                total:
+                    format: int64
+                    type: integer
+            required:
+                - items
+                - total
+                - limit
+                - offset
+            type: object
+        UpdateRole:
+            additionalProperties: false
+            properties:
+                expected_version:
+                    format: int64
+                    minimum: 1
+                    type: integer
+                name:
+                    maxLength: 200
+                    minLength: 1
+                    pattern: \S
+                    type: string
+                permission_codes:
+                    items:
+                        $ref: '#/components/schemas/PermissionCode'
+                    minItems: 1
+                    type: array
+                    uniqueItems: true
+            required:
+                - name
+                - permission_codes
+                - expected_version
+            type: object
+        UpdateRoleTemplate:
+            additionalProperties: false
+            properties:
+                expected_version:
+                    format: int64
+                    minimum: 1
+                    type: integer
+                name:
+                    maxLength: 200
+                    minLength: 1
+                    pattern: \S
+                    type: string
+                permission_codes:
+                    items:
+                        $ref: '#/components/schemas/PermissionCode'
+                    minItems: 1
+                    type: array
+                    uniqueItems: true
+            required:
+                - name
+                - permission_codes
+                - expected_version
+            type: object
+        UserRoleAssignment:
+            properties:
+                assigned_at:
+                    format: date-time
+                    type: string
+                assigned_by:
+                    $ref: '#/components/schemas/ID'
+                role_id:
+                    $ref: '#/components/schemas/ID'
+                role_name:
+                    type: string
+                scope:
+                    $ref: '#/components/schemas/Scope'
+                user_id:
+                    $ref: '#/components/schemas/ID'
+            required:
+                - role_id
+                - user_id
+                - role_name
+                - scope
+                - assigned_by
+                - assigned_at
+            type: object
+        UserRoleAssignmentPage:
+            properties:
+                items:
+                    items:
+                        $ref: '#/components/schemas/UserRoleAssignment'
+                    type: array
+                limit:
+                    type: integer
+                offset:
+                    type: integer
+                total:
+                    format: int64
+                    type: integer
+            required:
+                - items
+                - total
+                - limit
+                - offset
+            type: object
+info:
+    title: Roles Service
+    version: 1.0.0
+openapi: 3.0.3
+paths:
+    /permissions:
+        get:
+            operationId: ListPermissions
+            parameters:
+                - in: query
+                  name: scope_type
+                  required: true
+                  schema:
+                    $ref: '#/components/schemas/ScopeType'
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: '#/components/schemas/Permission'
+                                type: array
+                    description: Success
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+    /role-templates:
+        get:
+            operationId: ListTemplates
+            parameters:
+                - in: query
+                  name: target_scope_type
+                  required: true
+                  schema:
+                    $ref: '#/components/schemas/ScopeType'
+                - in: query
+                  name: system_id
+                  required: true
+                  schema:
+                    $ref: '#/components/schemas/ID'
+                - in: query
+                  name: limit
+                  schema:
+                    default: 20
+                    maximum: 100
+                    minimum: 1
+                    type: integer
+                - in: query
+                  name: offset
+                  schema:
+                    default: 0
+                    maximum: 2147483647
+                    minimum: 0
+                    type: integer
+                - description: Case-insensitive literal substring of name; % and _ have no wildcard meaning.
+                  in: query
+                  name: search
+                  schema:
+                    type: string
+                - description: ID is the tie-breaker in the same direction. Default created_at DESC, id DESC.
+                  in: query
+                  name: sort
+                  schema:
+                    default: created_at
+                    enum:
+                        - name
+                        - created_at
+                        - updated_at
+                    type: string
+                - in: query
+                  name: direction
+                  schema:
+                    default: desc
+                    enum:
+                        - asc
+                        - desc
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/TemplatePage'
+                    description: Success
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+        post:
+            operationId: CreateTemplate
+            parameters: []
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateTemplate'
+                required: true
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/RoleTemplate'
+                    description: Success
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+    /role-templates/{id}:
+        delete:
+            operationId: DeleteTemplate
+            parameters:
+                - in: query
+                  name: system_id
+                  required: true
+                  schema:
+                    $ref: '#/components/schemas/ID'
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    $ref: '#/components/schemas/ID'
+                - in: query
+                  name: expected_version
+                  required: true
+                  schema:
+                    format: int64
+                    minimum: 1
+                    type: integer
+            responses:
+                "204":
+                    description: Success
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+        get:
+            operationId: GetTemplate
+            parameters:
+                - in: query
+                  name: system_id
+                  required: true
+                  schema:
+                    $ref: '#/components/schemas/ID'
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    $ref: '#/components/schemas/ID'
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/RoleTemplate'
+                    description: Success
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+        put:
+            description: Full replacement of name and permission_codes. Both fields and expected_version are required. Empty permissions are invalid.
+            operationId: UpdateTemplate
+            parameters:
+                - in: query
+                  name: system_id
+                  required: true
+                  schema:
+                    $ref: '#/components/schemas/ID'
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    $ref: '#/components/schemas/ID'
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateRoleTemplate'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/RoleTemplate'
+                    description: Success
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+    /roles:
+        get:
+            operationId: ListRoles
+            parameters:
+                - in: query
+                  name: scope_type
+                  required: true
+                  schema:
+                    $ref: '#/components/schemas/ScopeType'
+                - in: query
+                  name: scope_id
+                  required: true
+                  schema:
+                    $ref: '#/components/schemas/ID'
+                - in: query
+                  name: limit
+                  schema:
+                    default: 20
+                    maximum: 100
+                    minimum: 1
+                    type: integer
+                - in: query
+                  name: offset
+                  schema:
+                    default: 0
+                    maximum: 2147483647
+                    minimum: 0
+                    type: integer
+                - description: Case-insensitive literal substring of name; % and _ have no wildcard meaning.
+                  in: query
+                  name: search
+                  schema:
+                    type: string
+                - description: ID is the tie-breaker in the same direction. Default created_at DESC, id DESC.
+                  in: query
+                  name: sort
+                  schema:
+                    default: created_at
+                    enum:
+                        - name
+                        - created_at
+                        - updated_at
+                    type: string
+                - in: query
+                  name: direction
+                  schema:
+                    default: desc
+                    enum:
+                        - asc
+                        - desc
+                    type: string
+                - in: query
+                  name: permission_code
+                  schema:
+                    $ref: '#/components/schemas/PermissionCode'
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/RolePage'
+                    description: Success
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+        post:
+            operationId: CreateRole
+            parameters: []
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateRole'
+                required: true
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Role'
+                    description: Success
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+    /roles/{id}:
+        delete:
+            operationId: DeleteRole
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    $ref: '#/components/schemas/ID'
+                - in: query
+                  name: expected_version
+                  required: true
+                  schema:
+                    format: int64
+                    minimum: 1
+                    type: integer
+            responses:
+                "204":
+                    description: Success
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+        get:
+            operationId: GetRole
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    $ref: '#/components/schemas/ID'
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Role'
+                    description: Success
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+        put:
+            description: Full replacement of name and permission_codes. Both fields and expected_version are required. Empty permissions are invalid.
+            operationId: UpdateRole
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    $ref: '#/components/schemas/ID'
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/UpdateRole'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Role'
+                    description: Success
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+    /roles/{role_id}/assignments:
+        get:
+            operationId: ListAssignments
+            parameters:
+                - in: path
+                  name: role_id
+                  required: true
+                  schema:
+                    $ref: '#/components/schemas/ID'
+                - in: query
+                  name: limit
+                  schema:
+                    default: 20
+                    maximum: 100
+                    minimum: 1
+                    type: integer
+                - in: query
+                  name: offset
+                  schema:
+                    default: 0
+                    maximum: 2147483647
+                    minimum: 0
+                    type: integer
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AssignmentPage'
+                    description: Success
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+    /roles/{role_id}/assignments/{user_id}:
+        delete:
+            operationId: RevokeRole
+            parameters:
+                - in: path
+                  name: role_id
+                  required: true
+                  schema:
+                    $ref: '#/components/schemas/ID'
+                - in: path
+                  name: user_id
+                  required: true
+                  schema:
+                    $ref: '#/components/schemas/ID'
+            responses:
+                "204":
+                    description: Success
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+        put:
+            operationId: AssignRole
+            parameters:
+                - in: path
+                  name: role_id
+                  required: true
+                  schema:
+                    $ref: '#/components/schemas/ID'
+                - in: path
+                  name: user_id
+                  required: true
+                  schema:
+                    $ref: '#/components/schemas/ID'
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/RoleAssignment'
+                    description: Existing assignment, unchanged
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/RoleAssignment'
+                    description: Created
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+    /users/{user_id}/role-assignments:
+        get:
+            operationId: ListUserAssignments
+            parameters:
+                - in: path
+                  name: user_id
+                  required: true
+                  schema:
+                    $ref: '#/components/schemas/ID'
+                - in: query
+                  name: limit
+                  schema:
+                    default: 20
+                    maximum: 100
+                    minimum: 1
+                    type: integer
+                - in: query
+                  name: offset
+                  schema:
+                    default: 0
+                    maximum: 2147483647
+                    minimum: 0
+                    type: integer
+                - in: query
+                  name: scope_type
+                  required: true
+                  schema:
+                    $ref: '#/components/schemas/ScopeType'
+                - description: Requires scope_type.
+                  in: query
+                  name: scope_id
+                  required: true
+                  schema:
+                    $ref: '#/components/schemas/ID'
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UserRoleAssignmentPage'
+                    description: Success
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+
+    /role-assignments:
+        get:
+            operationId: ListScopeAssignments
+            parameters:
+                - in: query
+                  name: limit
+                  schema:
+                    default: 20
+                    maximum: 100
+                    minimum: 1
+                    type: integer
+                - in: query
+                  name: offset
+                  schema:
+                    default: 0
+                    maximum: 2147483647
+                    minimum: 0
+                    type: integer
+                - in: query
+                  name: scope_type
+                  required: true
+                  schema:
+                    $ref: '#/components/schemas/ScopeType'
+                - description: Requires scope_type.
+                  in: query
+                  name: scope_id
+                  required: true
+                  schema:
+                    $ref: '#/components/schemas/ID'
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UserRoleAssignmentPage'
+                    description: Success
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Error'
+                    description: Error

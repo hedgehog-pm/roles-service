@@ -15,6 +15,12 @@ func projectPermissionDescriptors() []PermissionDescriptor {
 			Description: "Разрешает редактировать проект; права на создание, редактирование и удаление его задач, модулей, wiki, файлов, комментариев и трудозатрат наследуются согласно политике проекта.",
 		},
 		{
+			Code:        ProjectDelete,
+			ScopeType:   ScopeProject,
+			Title:       "Удаление проекта",
+			Description: "Разрешает удалять проект.",
+		},
+		{
 			Code:        ProjectParticipantView,
 			ScopeType:   ScopeProject,
 			Title:       "Просмотр участников проекта",

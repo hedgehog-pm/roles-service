@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 type Role struct {
@@ -24,12 +25,12 @@ func NewRole(
 	createdBy int,
 ) (*Role, error) {
 	name = strings.TrimSpace(name)
-	if name == "" {
-		return nil, NewError(CodeInvalidInput, "role name is empty")
+	if name == "" || utf8.RuneCountInString(name) > 200 {
+		return nil, FieldError(CodeInvalidInput, "name", "name must contain 1 to 200 Unicode characters")
 	}
 
 	if len(permissions.codes) == 0 {
-		return nil, NewError(CodeInvalidInput, "role must have at least one permission")
+		return nil, FieldError(CodeEmptyPermissions, "permission_codes", "at least one permission is required")
 	}
 
 	if _, err := NewScopeRef(scope.Type(), scope.ID()); err != nil {
@@ -59,8 +60,8 @@ func NewRole(
 
 func (r *Role) Rename(name string) error {
 	name = strings.TrimSpace(name)
-	if name == "" {
-		return NewError(CodeInvalidInput, "role name is empty")
+	if name == "" || utf8.RuneCountInString(name) > 200 {
+		return FieldError(CodeInvalidInput, "name", "name must contain 1 to 200 Unicode characters")
 	}
 
 	if name == r.Name {
@@ -80,11 +81,11 @@ func (r *Role) SetPermissions(permissions PermissionSet) error {
 	}
 
 	if permissions.codes == nil {
-		return NewError(CodeInvalidInput, "permission set is not initialized")
+		return FieldError(CodeEmptyPermissions, "permission_codes", "at least one permission is required")
 	}
 
 	if len(permissions.codes) == 0 {
-		return NewError(CodeInvalidInput, "role must have at least one permission")
+		return FieldError(CodeEmptyPermissions, "permission_codes", "at least one permission is required")
 	}
 
 	if r.Permissions.Equal(permissions) {

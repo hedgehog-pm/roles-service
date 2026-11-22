@@ -5,10 +5,11 @@ no_tests: true
 type_system: database/sql
 plugins_preset: none
 types:
+  pq.StringArray:
+    alias_of: "[]string"
   int32:
-    alias_of: int
-  int64:
     alias_of: int
 psql:
   driver: github.com/jackc/pgx/v5/stdlib
-  queries: []
+  queries:
+    - internal/generated/bob/rolesdb

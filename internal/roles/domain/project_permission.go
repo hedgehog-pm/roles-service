@@ -3,6 +3,7 @@ package domain
 const (
 	ProjectView                        PermissionCode = "project.view"
 	ProjectEdit                        PermissionCode = "project.edit"
+	ProjectDelete                      PermissionCode = "project.delete"
 	ProjectParticipantView             PermissionCode = "project.participant.view"
 	ProjectParticipantAdd              PermissionCode = "project.participant.add"
 	ProjectParticipantRemove           PermissionCode = "project.participant.remove"

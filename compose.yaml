@@ -1,0 +1,13 @@
+services:
+  roles-db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: roles_service
+      POSTGRES_USER: roles_service
+      POSTGRES_PASSWORD: ${ROLES_DATABASE_PASSWORD:?Set ROLES_DATABASE_PASSWORD}
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - roles-data:/var/lib/postgresql/data
+volumes:
+  roles-data:

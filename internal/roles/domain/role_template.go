@@ -3,6 +3,7 @@ package domain
 import (
 	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 type RoleTemplate struct {
@@ -29,8 +30,8 @@ func NewRoleTemplate(
 	}
 
 	name = strings.TrimSpace(name)
-	if name == "" {
-		return nil, NewError(CodeInvalidInput, "role template name is empty")
+	if name == "" || utf8.RuneCountInString(name) > 200 {
+		return nil, FieldError(CodeInvalidInput, "name", "name must contain 1 to 200 Unicode characters")
 	}
 
 	switch targetScopeType {
@@ -46,11 +47,11 @@ func NewRoleTemplate(
 	}
 
 	if permissions.codes == nil {
-		return nil, NewError(CodeInvalidInput, "permission set is not initialized")
+		return nil, FieldError(CodeEmptyPermissions, "permission_codes", "at least one permission is required")
 	}
 
 	if len(permissions.codes) == 0 {
-		return nil, NewError(CodeInvalidInput, "role template permissions are empty")
+		return nil, FieldError(CodeEmptyPermissions, "permission_codes", "at least one permission is required")
 	}
 
 	if createdBy <= 0 {
@@ -73,8 +74,8 @@ func NewRoleTemplate(
 
 func (t *RoleTemplate) Rename(name string) error {
 	name = strings.TrimSpace(name)
-	if name == "" {
-		return NewError(CodeInvalidInput, "role template name is empty")
+	if name == "" || utf8.RuneCountInString(name) > 200 {
+		return FieldError(CodeInvalidInput, "name", "name must contain 1 to 200 Unicode characters")
 	}
 
 	if name == t.Name {
@@ -96,11 +97,11 @@ func (t *RoleTemplate) SetPermissions(permissions PermissionSet) error {
 	}
 
 	if permissions.codes == nil {
-		return NewError(CodeInvalidInput, "permission set is not initialized")
+		return FieldError(CodeEmptyPermissions, "permission_codes", "at least one permission is required")
 	}
 
 	if len(permissions.codes) == 0 {
-		return NewError(CodeInvalidInput, "role template must have at least one permission")
+		return FieldError(CodeEmptyPermissions, "permission_codes", "at least one permission is required")
 	}
 
 	if t.Permissions.Equal(permissions) {

@@ -12,14 +12,20 @@ exclude:
 components:
   main: { in: cmd/** }
   domain: { in: [internal/domain/**, internal/roles/domain/**] }
-  service: { in: [internal/service/**, internal/usecase/**] }
+  service: { in: [internal/service/**, internal/usecase/**, internal/roles/application/**] }
+  role_module: { in: internal/roles }
+  role_storage: { in: internal/roles/infrastructure/postgres }
   handler: { in: [internal/handler/**, internal/api/**] }
   repository: { in: internal/repository/** }
   storage: { in: internal/storage/** }
-  database: { in: internal/generated/bob/** }
-  contracts: { in: [internal/generated/api/**, internal/generated/grpc/**] }
+  database: { in: internal/generated/bob/rolesdb }
+  contracts: { in: [internal/generated/api/roles, internal/generated/grpc/**] }
 
 deps:
+  role_module:
+    mayDependOn: [domain, service, role_storage]
+  role_storage:
+    mayDependOn: [domain, service, role_storage, database]
   main:
     anyProjectDeps: true
   domain:
