@@ -1,34 +1,31 @@
 package domain
 
 import (
-	"errors"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type RoleAssignment struct {
-	roleID     uuid.UUID
-	userID     uuid.UUID
-	assignedBy uuid.UUID
+	roleID     int
+	userID     int
+	assignedBy int
 	assignedAt time.Time
 }
 
 func NewRoleAssignment(
-	roleID uuid.UUID,
-	userID uuid.UUID,
-	assignedBy uuid.UUID,
+	roleID int,
+	userID int,
+	assignedBy int,
 ) (RoleAssignment, error) {
-	if roleID == uuid.Nil {
-		return RoleAssignment{}, errors.New("role ID is empty")
+	if roleID <= 0 {
+		return RoleAssignment{}, NewError(CodeInvalidInput, "role ID must be positive")
 	}
 
-	if userID == uuid.Nil {
-		return RoleAssignment{}, errors.New("user ID is empty")
+	if userID <= 0 {
+		return RoleAssignment{}, NewError(CodeInvalidInput, "user ID must be positive")
 	}
 
-	if assignedBy == uuid.Nil {
-		return RoleAssignment{}, errors.New("assigned by ID is empty")
+	if assignedBy <= 0 {
+		return RoleAssignment{}, NewError(CodeInvalidInput, "assigned by ID must be positive")
 	}
 
 	return RoleAssignment{
@@ -39,15 +36,15 @@ func NewRoleAssignment(
 	}, nil
 }
 
-func (a RoleAssignment) RoleID() uuid.UUID {
+func (a RoleAssignment) RoleID() int {
 	return a.roleID
 }
 
-func (a RoleAssignment) UserID() uuid.UUID {
+func (a RoleAssignment) UserID() int {
 	return a.userID
 }
 
-func (a RoleAssignment) AssignedBy() uuid.UUID {
+func (a RoleAssignment) AssignedBy() int {
 	return a.assignedBy
 }
 

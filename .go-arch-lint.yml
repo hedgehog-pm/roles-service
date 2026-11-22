@@ -11,7 +11,7 @@ exclude:
 
 components:
   main: { in: cmd/** }
-  domain: { in: internal/domain/** }
+  domain: { in: [internal/domain/**, internal/roles/domain/**] }
   service: { in: [internal/service/**, internal/usecase/**] }
   handler: { in: [internal/handler/**, internal/api/**] }
   repository: { in: internal/repository/** }

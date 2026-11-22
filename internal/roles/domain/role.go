@@ -1,39 +1,35 @@
 package domain
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type Role struct {
-	id               uuid.UUID
-	name             string
-	permissions      PermissionSet
-	scope            ScopeRef
-	sourceTemplateID *uuid.UUID
-	version          int64
-	createdBy        uuid.UUID
-	createdAt        time.Time
-	updatedAt        time.Time
+	ID          int
+	Name        string
+	Permissions PermissionSet
+	Scope       ScopeRef
+	Version     int64
+	CreatedBy   int
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 }
 
 func NewRole(
 	name string,
 	scope ScopeRef,
 	permissions PermissionSet,
-	createdBy uuid.UUID,
+	createdBy int,
 ) (*Role, error) {
 	name = strings.TrimSpace(name)
 	if name == "" {
-		return nil, errors.New("role name is empty")
+		return nil, NewError(CodeInvalidInput, "role name is empty")
 	}
 
 	if len(permissions.codes) == 0 {
-		return nil, errors.New("role must have at least one permission")
+		return nil, NewError(CodeInvalidInput, "role must have at least one permission")
 	}
 
 	if _, err := NewScopeRef(scope.Type(), scope.ID()); err != nil {
@@ -41,111 +37,63 @@ func NewRole(
 	}
 
 	if permissions.ScopeType() != scope.Type() {
-		return nil, errors.New("permissions scope does not match role scope")
+		return nil, NewError(CodeInvalidInput, "permissions scope does not match role scope")
 	}
 
-	if createdBy == uuid.Nil {
-		return nil, errors.New("creator ID is empty")
-	}
-
-	id, err := uuid.NewRandom()
-	if err != nil {
-		return nil, fmt.Errorf("generate role ID: %w", err)
+	if createdBy <= 0 {
+		return nil, NewError(CodeInvalidInput, "creator ID must be positive")
 	}
 
 	now := time.Now().UTC()
 
 	return &Role{
-		id:          id,
-		name:        name,
-		permissions: permissions,
-		scope:       scope,
-		version:     1,
-		createdBy:   createdBy,
-		createdAt:   now,
-		updatedAt:   now,
+		Name:        name,
+		Permissions: permissions,
+		Scope:       scope,
+		Version:     1,
+		CreatedBy:   createdBy,
+		CreatedAt:   now,
+		UpdatedAt:   now,
 	}, nil
 }
 
 func (r *Role) Rename(name string) error {
 	name = strings.TrimSpace(name)
 	if name == "" {
-		return errors.New("role name is empty")
+		return NewError(CodeInvalidInput, "role name is empty")
 	}
 
-	if name == r.name {
+	if name == r.Name {
 		return nil
 	}
 
-	r.name = name
-	r.version++
-	r.updatedAt = time.Now().UTC()
+	r.Name = name
+	r.Version++
+	r.UpdatedAt = time.Now().UTC()
 
 	return nil
 }
 
 func (r *Role) SetPermissions(permissions PermissionSet) error {
-	if permissions.ScopeType() != r.scope.Type() {
-		return errors.New("permissions scope does not match role scope")
+	if permissions.ScopeType() != r.Scope.Type() {
+		return NewError(CodeInvalidInput, "permissions scope does not match role scope")
 	}
 
 	if permissions.codes == nil {
-		return errors.New("permission set is not initialized")
-	}
-
-	if r.permissions.Equal(permissions) {
-		return nil
+		return NewError(CodeInvalidInput, "permission set is not initialized")
 	}
 
 	if len(permissions.codes) == 0 {
-		return errors.New("role must have at least one permission")
+		return NewError(CodeInvalidInput, "role must have at least one permission")
 	}
 
-	r.permissions = permissions
-	r.version++
-	r.updatedAt = time.Now().UTC()
-
-	return nil
-}
-
-func (r *Role) ID() uuid.UUID {
-	return r.id
-}
-
-func (r *Role) Name() string {
-	return r.name
-}
-
-func (r *Role) Scope() ScopeRef {
-	return r.scope
-}
-
-func (r *Role) Permissions() PermissionSet {
-	return r.permissions
-}
-
-func (r *Role) SourceTemplateID() *uuid.UUID {
-	if r.sourceTemplateID == nil {
+	if r.Permissions.Equal(permissions) {
 		return nil
 	}
 
-	id := *r.sourceTemplateID
+	r.Permissions = permissions
+	r.Version++
+	r.UpdatedAt = time.Now().UTC()
 
-	return &id
-}
-
-func (r *Role) Version() int64 {
-	return r.version
-}
-
-func (r *Role) CreatedBy() uuid.UUID {
-	return r.createdBy
-}
-
-func (r *Role) CreatedAt() time.Time {
-	return r.createdAt
-}
-
-func (r *Role) UpdatedAt() time.Time {
-	return r.updatedAt
+	return nil
 }

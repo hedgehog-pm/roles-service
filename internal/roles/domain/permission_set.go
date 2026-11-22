@@ -1,6 +1,9 @@
 package domain
 
-import "slices"
+import (
+	"maps"
+	"slices"
+)
 
 type PermissionSet struct {
 	scopeType ScopeType
@@ -29,19 +32,5 @@ func (s PermissionSet) Codes() []PermissionCode {
 }
 
 func (s PermissionSet) Equal(other PermissionSet) bool {
-	if s.scopeType != other.scopeType {
-		return false
-	}
-
-	if len(s.codes) != len(other.codes) {
-		return false
-	}
-
-	for code := range s.codes {
-		if !other.Contains(code) {
-			return false
-		}
-	}
-
-	return true
+	return s.scopeType == other.scopeType && maps.Equal(s.codes, other.codes)
 }

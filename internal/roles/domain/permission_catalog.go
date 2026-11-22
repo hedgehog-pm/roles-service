@@ -62,10 +62,10 @@ func (c PermissionCatalog) NewSet(
 	switch scopeType {
 	case ScopeSystem, ScopeWorkspace, ScopeProject:
 	default:
-		return PermissionSet{}, fmt.Errorf(
+		return PermissionSet{}, NewError(CodeInvalidInput, fmt.Sprintf(
 			"unknown scope type: %s",
 			scopeType,
-		)
+		))
 	}
 
 	uniqueCodes := make(map[PermissionCode]struct{}, len(codes))
@@ -73,19 +73,19 @@ func (c PermissionCatalog) NewSet(
 	for _, code := range codes {
 		descriptor, exists := c.entries[code]
 		if !exists {
-			return PermissionSet{}, fmt.Errorf(
+			return PermissionSet{}, NewError(CodeInvalidInput, fmt.Sprintf(
 				"unknown permission code: %s",
 				code,
-			)
+			))
 		}
 
 		if descriptor.ScopeType != scopeType {
-			return PermissionSet{}, fmt.Errorf(
+			return PermissionSet{}, NewError(CodeInvalidInput, fmt.Sprintf(
 				"permission %s belongs to scope %s, not %s",
 				code,
 				descriptor.ScopeType,
 				scopeType,
-			)
+			))
 		}
 
 		uniqueCodes[code] = struct{}{}

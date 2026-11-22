@@ -1,11 +1,5 @@
 package domain
 
-import (
-	"errors"
-
-	"github.com/google/uuid"
-)
-
 type ScopeType string
 
 const (
@@ -17,18 +11,18 @@ const (
 // value obj
 type ScopeRef struct {
 	scopeType  ScopeType
-	resourceID uuid.UUID
+	resourceID int
 }
 
-func NewScopeRef(scopeType ScopeType, id uuid.UUID) (ScopeRef, error) {
+func NewScopeRef(scopeType ScopeType, id int) (ScopeRef, error) {
 	switch scopeType {
 	case ScopeSystem, ScopeWorkspace, ScopeProject:
 	default:
-		return ScopeRef{}, errors.New("unknown scope type")
+		return ScopeRef{}, NewError(CodeInvalidInput, "unknown scope type")
 	}
 
-	if id == uuid.Nil {
-		return ScopeRef{}, errors.New("scope ID is empty")
+	if id <= 0 {
+		return ScopeRef{}, NewError(CodeInvalidInput, "scope ID must be positive")
 	}
 
 	return ScopeRef{scopeType: scopeType, resourceID: id}, nil
@@ -38,6 +32,6 @@ func (s ScopeRef) Type() ScopeType {
 	return s.scopeType
 }
 
-func (s ScopeRef) ID() uuid.UUID {
+func (s ScopeRef) ID() int {
 	return s.resourceID
 }

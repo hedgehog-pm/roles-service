@@ -1,161 +1,115 @@
 package domain
 
 import (
-	"errors"
-	"fmt"
 	"strings"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type RoleTemplate struct {
-	id              uuid.UUID
-	systemID        uuid.UUID
-	name            string
-	targetScopeType ScopeType
-	permissions     PermissionSet
-	version         int64
-	createdBy       uuid.UUID
-	createdAt       time.Time
-	updatedAt       time.Time
+	ID              int
+	SystemID        int
+	Name            string
+	TargetScopeType ScopeType
+	Permissions     PermissionSet
+	Version         int64
+	CreatedBy       int
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
 }
 
 func NewRoleTemplate(
-	systemID uuid.UUID,
+	systemID int,
 	name string,
 	targetScopeType ScopeType,
 	permissions PermissionSet,
-	createdBy uuid.UUID,
+	createdBy int,
 ) (*RoleTemplate, error) {
-	if systemID == uuid.Nil {
-		return nil, errors.New("system ID is empty")
+	if systemID <= 0 {
+		return nil, NewError(CodeInvalidInput, "system ID must be positive")
 	}
 
 	name = strings.TrimSpace(name)
 	if name == "" {
-		return nil, errors.New("role template name is empty")
+		return nil, NewError(CodeInvalidInput, "role template name is empty")
 	}
 
 	switch targetScopeType {
 	case ScopeSystem, ScopeWorkspace, ScopeProject:
 	default:
-		return nil, errors.New("unknown target scope type")
+		return nil, NewError(CodeInvalidInput, "unknown target scope type")
 	}
 
 	if permissions.ScopeType() != targetScopeType {
-		return nil, errors.New(
+		return nil, NewError(CodeInvalidInput,
 			"permissions scope does not match template target scope",
 		)
 	}
 
 	if permissions.codes == nil {
-		return nil, errors.New("permission set is not initialized")
+		return nil, NewError(CodeInvalidInput, "permission set is not initialized")
 	}
 
 	if len(permissions.codes) == 0 {
-		return nil, errors.New("role template permissions are empty")
+		return nil, NewError(CodeInvalidInput, "role template permissions are empty")
 	}
 
-	if createdBy == uuid.Nil {
-		return nil, errors.New("creator ID is empty")
-	}
-
-	id, err := uuid.NewRandom()
-	if err != nil {
-		return nil, fmt.Errorf("generate role template ID: %w", err)
+	if createdBy <= 0 {
+		return nil, NewError(CodeInvalidInput, "creator ID must be positive")
 	}
 
 	now := time.Now().UTC()
 
 	return &RoleTemplate{
-		id:              id,
-		systemID:        systemID,
-		name:            name,
-		targetScopeType: targetScopeType,
-		permissions:     permissions,
-		version:         1,
-		createdBy:       createdBy,
-		createdAt:       now,
-		updatedAt:       now,
+		SystemID:        systemID,
+		Name:            name,
+		TargetScopeType: targetScopeType,
+		Permissions:     permissions,
+		Version:         1,
+		CreatedBy:       createdBy,
+		CreatedAt:       now,
+		UpdatedAt:       now,
 	}, nil
 }
 
 func (t *RoleTemplate) Rename(name string) error {
 	name = strings.TrimSpace(name)
 	if name == "" {
-		return errors.New("role template name is empty")
+		return NewError(CodeInvalidInput, "role template name is empty")
 	}
 
-	if name == t.name {
+	if name == t.Name {
 		return nil
 	}
 
-	t.name = name
-	t.version++
-	t.updatedAt = time.Now().UTC()
+	t.Name = name
+	t.Version++
+	t.UpdatedAt = time.Now().UTC()
 
 	return nil
 }
 
 func (t *RoleTemplate) SetPermissions(permissions PermissionSet) error {
-	if permissions.ScopeType() != t.targetScopeType {
-		return errors.New(
+	if permissions.ScopeType() != t.TargetScopeType {
+		return NewError(CodeInvalidInput,
 			"permissions scope does not match template target scope",
 		)
 	}
 
 	if permissions.codes == nil {
-		return errors.New("permission set is not initialized")
+		return NewError(CodeInvalidInput, "permission set is not initialized")
 	}
 
 	if len(permissions.codes) == 0 {
-		return errors.New("role template must have at least one permission")
+		return NewError(CodeInvalidInput, "role template must have at least one permission")
 	}
 
-	if t.permissions.Equal(permissions) {
+	if t.Permissions.Equal(permissions) {
 		return nil
 	}
 
-	t.permissions = permissions
-	t.version++
-	t.updatedAt = time.Now().UTC()
+	t.Permissions = permissions
+	t.Version++
+	t.UpdatedAt = time.Now().UTC()
 
 	return nil
-}
-
-func (t *RoleTemplate) ID() uuid.UUID {
-	return t.id
-}
-
-func (t *RoleTemplate) SystemID() uuid.UUID {
-	return t.systemID
-}
-
-func (t *RoleTemplate) Name() string {
-	return t.name
-}
-
-func (t *RoleTemplate) TargetScopeType() ScopeType {
-	return t.targetScopeType
-}
-
-func (t *RoleTemplate) Permissions() PermissionSet {
-	return t.permissions
-}
-
-func (t *RoleTemplate) Version() int64 {
-	return t.version
-}
-
-func (t *RoleTemplate) CreatedBy() uuid.UUID {
-	return t.createdBy
-}
-
-func (t *RoleTemplate) CreatedAt() time.Time {
-	return t.createdAt
-}
-
-func (t *RoleTemplate) UpdatedAt() time.Time {
-	return t.updatedAt
 }
