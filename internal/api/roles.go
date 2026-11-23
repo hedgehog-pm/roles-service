@@ -3,9 +3,9 @@ package api
 import (
 	"context"
 
-	generated "github.com/hedgehog-pm/roles-service/internal/generated/api/roles"
-	"github.com/hedgehog-pm/roles-service/internal/roles/application"
-	"github.com/hedgehog-pm/roles-service/internal/roles/domain"
+	"github.com/hedgehog-pm/roles-service/internal/domain"
+	generated "github.com/hedgehog-pm/roles-service/internal/generated/api"
+	application "github.com/hedgehog-pm/roles-service/internal/service"
 )
 
 type RoleHandler struct {
@@ -78,7 +78,7 @@ func (h *RoleHandler) ListRoles(ctx context.Context, request generated.ListRoles
 		return nil, err
 	}
 
-	options := application.ListOptions{Pagination: pagination(request.Params.Limit, request.Params.Offset), Search: optional(request.Params.Search), Sort: string(optional(request.Params.Sort)), Direction: string(optional(request.Params.Direction)), PermissionCode: domain.PermissionCode(optional(request.Params.PermissionCode))}
+	options := domain.ListOptions{Pagination: pagination(request.Params.Limit, request.Params.Offset), Search: optional(request.Params.Search), Sort: string(optional(request.Params.Sort)), Direction: string(optional(request.Params.Direction)), PermissionCode: domain.PermissionCode(optional(request.Params.PermissionCode))}
 
 	values, err := h.roles.Page(ctx, filter, options)
 	if err != nil {

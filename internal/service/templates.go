@@ -3,39 +3,43 @@ package application
 import (
 	"context"
 
-	"github.com/hedgehog-pm/roles-service/internal/roles/domain"
+	"github.com/hedgehog-pm/roles-service/internal/domain"
 )
 
-type RoleRepository interface {
-	Page(context.Context, domain.ScopeRef, ListOptions) (Page[*domain.Role], error)
-	Get(context.Context, int) (*domain.Role, error)
+type (
+	TemplateRepository interface {
+		Page(context.Context, domain.TemplateFilter, domain.ListOptions) (domain.Page[*domain.RoleTemplate], error)
+		Get(context.Context, int) (*domain.RoleTemplate, error)
 
-	Insert(context.Context, *domain.Role) (*domain.Role, error)
-	Update(context.Context, *domain.Role, int64) error
-	Delete(context.Context, int, int64) error
-}
-type Roles struct {
-	repository RoleRepository
+		Insert(context.Context, *domain.RoleTemplate) (*domain.RoleTemplate, error)
+		Update(context.Context, *domain.RoleTemplate, int64) error
+		Delete(context.Context, int, int64) error
+	}
+)
+
+type Templates struct {
+	repository TemplateRepository
 	catalog    domain.PermissionCatalog
 }
 
-func NewRoles(repository RoleRepository, catalog domain.PermissionCatalog) *Roles {
-	return &Roles{repository: repository, catalog: catalog}
+func NewTemplates(repository TemplateRepository, catalog domain.PermissionCatalog) *Templates {
+	return &Templates{repository: repository, catalog: catalog}
 }
 
-type CreateRoleInput struct {
+type CreateTemplateInput struct {
 	Name            string
-	Scope           domain.ScopeRef
+	SystemID        int
+	TargetScopeType domain.ScopeType
 	PermissionCodes []domain.PermissionCode
 }
 
-func (s *Roles) Create(ctx context.Context, actorID int, input CreateRoleInput) (*domain.Role, error) {
-	permissions, err := s.catalog.NewSet(input.Scope.Type(), input.PermissionCodes)
+func (s *Templates) Create(ctx context.Context, actorID int, input CreateTemplateInput) (*domain.RoleTemplate, error) {
+	permissions, err := s.catalog.NewSet(input.TargetScopeType, input.PermissionCodes)
 	if err != nil {
 		return nil, err
 	}
 
-	value, err := domain.NewRole(input.Name, input.Scope, permissions, actorID)
+	value, err := domain.NewRoleTemplate(input.SystemID, input.Name, input.TargetScopeType, permissions, actorID)
 	if err != nil {
 		return nil, err
 	}
@@ -43,14 +47,14 @@ func (s *Roles) Create(ctx context.Context, actorID int, input CreateRoleInput) 
 	return s.repository.Insert(ctx, value)
 }
 
-type UpdateRoleInput struct {
+type UpdateTemplateInput struct {
 	ID              int
 	Version         int64
 	Name            string
 	PermissionCodes []domain.PermissionCode
 }
 
-func (s *Roles) Update(ctx context.Context, actorID int, input UpdateRoleInput) (*domain.Role, error) {
+func (s *Templates) Update(ctx context.Context, actorID int, input UpdateTemplateInput) (*domain.RoleTemplate, error) {
 	if actorID <= 0 {
 		return nil, domain.NewError(domain.CodeInvalidInput, "actor ID must be positive")
 	}
@@ -65,10 +69,10 @@ func (s *Roles) Update(ctx context.Context, actorID int, input UpdateRoleInput) 
 	}
 
 	if value.Version != input.Version {
-		return nil, ErrConflict
+		return nil, domain.ErrConflict
 	}
 
-	permissions, err := s.catalog.NewSet(value.Scope.Type(), input.PermissionCodes)
+	permissions, err := s.catalog.NewSet(value.TargetScopeType, input.PermissionCodes)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +96,7 @@ func (s *Roles) Update(ctx context.Context, actorID int, input UpdateRoleInput) 
 	return value, nil
 }
 
-func (s *Roles) Get(ctx context.Context, id int) (*domain.Role, error) {
+func (s *Templates) Get(ctx context.Context, id int) (*domain.RoleTemplate, error) {
 	if id <= 0 {
 		return nil, domain.FieldError(domain.CodeInvalidInput, "id", "ID must be positive")
 	}
@@ -100,7 +104,7 @@ func (s *Roles) Get(ctx context.Context, id int) (*domain.Role, error) {
 	return s.repository.Get(ctx, id)
 }
 
-func (s *Roles) Delete(ctx context.Context, actorID, id int, version int64) error {
+func (s *Templates) Delete(ctx context.Context, actorID, id int, version int64) error {
 	if actorID <= 0 {
 		return domain.NewError(domain.CodeInvalidInput, "actor ID must be positive")
 	}

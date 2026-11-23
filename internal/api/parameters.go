@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/hedgehog-pm/roles-service/internal/roles/application"
+	"github.com/hedgehog-pm/roles-service/internal/domain"
 )
 
 func optional[T any](v *T) T {
@@ -14,11 +14,11 @@ func optional[T any](v *T) T {
 	return zero
 }
 
-func pagination(limit, offset *int) application.Pagination {
+func pagination(limit, offset *int) domain.Pagination {
 	size := 20
 	if limit != nil {
 		size = *limit
 	}
 
-	return application.Pagination{Limit: size, Offset: optional(offset)}
+	return domain.Pagination{Limit: size, Offset: optional(offset)}
 }

@@ -3,9 +3,9 @@ package api
 import (
 	"context"
 
-	generated "github.com/hedgehog-pm/roles-service/internal/generated/api/roles"
-	"github.com/hedgehog-pm/roles-service/internal/roles/application"
-	"github.com/hedgehog-pm/roles-service/internal/roles/domain"
+	"github.com/hedgehog-pm/roles-service/internal/domain"
+	generated "github.com/hedgehog-pm/roles-service/internal/generated/api"
+	application "github.com/hedgehog-pm/roles-service/internal/service"
 )
 
 type RoleTemplateHandler struct {
@@ -80,9 +80,9 @@ func (h *RoleTemplateHandler) DeleteTemplate(ctx context.Context, request genera
 }
 
 func (h *RoleTemplateHandler) ListTemplates(ctx context.Context, request generated.ListTemplatesRequestObject) (generated.ListTemplatesResponseObject, error) {
-	filter := application.TemplateFilter{SystemID: request.Params.SystemID, TargetScopeType: domain.ScopeType(request.Params.TargetScopeType)}
+	filter := domain.TemplateFilter{SystemID: request.Params.SystemID, TargetScopeType: domain.ScopeType(request.Params.TargetScopeType)}
 
-	options := application.ListOptions{Pagination: pagination(request.Params.Limit, request.Params.Offset), Search: optional(request.Params.Search), Sort: string(optional(request.Params.Sort)), Direction: string(optional(request.Params.Direction))}
+	options := domain.ListOptions{Pagination: pagination(request.Params.Limit, request.Params.Offset), Search: optional(request.Params.Search), Sort: string(optional(request.Params.Sort)), Direction: string(optional(request.Params.Direction))}
 
 	values, err := h.templates.Page(ctx, filter, options)
 	if err != nil {
@@ -104,7 +104,7 @@ func (h *RoleTemplateHandler) checkTemplateSystem(ctx context.Context, id, syste
 	}
 
 	if value.SystemID != systemID {
-		return application.ErrNotFound
+		return domain.ErrNotFound
 	}
 
 	return nil

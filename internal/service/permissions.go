@@ -1,6 +1,6 @@
 package application
 
-import "github.com/hedgehog-pm/roles-service/internal/roles/domain"
+import "github.com/hedgehog-pm/roles-service/internal/domain"
 
 type Permissions struct{ catalog domain.PermissionCatalog }
 

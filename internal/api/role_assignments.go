@@ -3,9 +3,9 @@ package api
 import (
 	"context"
 
-	generated "github.com/hedgehog-pm/roles-service/internal/generated/api/roles"
-	"github.com/hedgehog-pm/roles-service/internal/roles/application"
-	"github.com/hedgehog-pm/roles-service/internal/roles/domain"
+	"github.com/hedgehog-pm/roles-service/internal/domain"
+	generated "github.com/hedgehog-pm/roles-service/internal/generated/api"
+	application "github.com/hedgehog-pm/roles-service/internal/service"
 )
 
 type RoleAssignmentHandler struct{ assignments *application.Assignments }
@@ -43,7 +43,7 @@ func (h *RoleAssignmentHandler) RevokeRole(ctx context.Context, request generate
 }
 
 func (h *RoleAssignmentHandler) ListAssignments(ctx context.Context, request generated.ListAssignmentsRequestObject) (generated.ListAssignmentsResponseObject, error) {
-	values, err := h.assignments.Page(ctx, application.AssignmentFilter{RoleID: request.RoleID, Pagination: pagination(request.Params.Limit, request.Params.Offset)})
+	values, err := h.assignments.Page(ctx, domain.AssignmentFilter{RoleID: request.RoleID, Pagination: pagination(request.Params.Limit, request.Params.Offset)})
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func (h *RoleAssignmentHandler) ListAssignments(ctx context.Context, request gen
 }
 
 func (h *RoleAssignmentHandler) ListUserAssignments(ctx context.Context, request generated.ListUserAssignmentsRequestObject) (generated.ListUserAssignmentsResponseObject, error) {
-	values, err := h.assignments.Page(ctx, application.AssignmentFilter{UserID: request.UserID, ScopeType: domain.ScopeType(request.Params.ScopeType), ScopeID: request.Params.ScopeID, Pagination: pagination(request.Params.Limit, request.Params.Offset)})
+	values, err := h.assignments.Page(ctx, domain.AssignmentFilter{UserID: request.UserID, ScopeType: domain.ScopeType(request.Params.ScopeType), ScopeID: request.Params.ScopeID, Pagination: pagination(request.Params.Limit, request.Params.Offset)})
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +71,7 @@ func (h *RoleAssignmentHandler) ListUserAssignments(ctx context.Context, request
 }
 
 func (h *RoleAssignmentHandler) ListScopeAssignments(ctx context.Context, request generated.ListScopeAssignmentsRequestObject) (generated.ListScopeAssignmentsResponseObject, error) {
-	values, err := h.assignments.Page(ctx, application.AssignmentFilter{ScopeType: domain.ScopeType(request.Params.ScopeType), ScopeID: request.Params.ScopeID, Pagination: pagination(request.Params.Limit, request.Params.Offset)})
+	values, err := h.assignments.Page(ctx, domain.AssignmentFilter{ScopeType: domain.ScopeType(request.Params.ScopeType), ScopeID: request.Params.ScopeID, Pagination: pagination(request.Params.Limit, request.Params.Offset)})
 	if err != nil {
 		return nil, err
 	}

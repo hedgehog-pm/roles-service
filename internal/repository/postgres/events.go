@@ -7,8 +7,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/stephenafamo/bob/types"
 
-	"github.com/hedgehog-pm/roles-service/internal/generated/bob/rolesdb"
-	"github.com/hedgehog-pm/roles-service/internal/roles/domain"
+	"github.com/hedgehog-pm/roles-service/internal/domain"
+	rolesdb "github.com/hedgehog-pm/roles-service/internal/generated/bob"
 )
 
 type rolePayload struct {

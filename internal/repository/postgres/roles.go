@@ -7,9 +7,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/hedgehog-pm/roles-service/internal/generated/bob/rolesdb"
-	"github.com/hedgehog-pm/roles-service/internal/roles/application"
-	"github.com/hedgehog-pm/roles-service/internal/roles/domain"
+	"github.com/hedgehog-pm/roles-service/internal/domain"
+	rolesdb "github.com/hedgehog-pm/roles-service/internal/generated/bob"
 )
 
 type Roles struct {
@@ -96,7 +95,7 @@ func (s *Roles) Update(ctx context.Context, value *domain.Role, expected int64) 
 				return err
 			}
 
-			return application.ErrConflict
+			return domain.ErrConflict
 		}
 
 		if value.Version == expected {
@@ -143,7 +142,7 @@ func (s *Roles) Delete(ctx context.Context, id int, expected int64) error {
 		}
 
 		if value.Version != expected {
-			return application.ErrConflict
+			return domain.ErrConflict
 		}
 
 		if _, err := queryExec(ctx, tx, rolesdb.DeleteRole(id)); err != nil {

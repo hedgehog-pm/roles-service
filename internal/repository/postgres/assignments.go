@@ -7,9 +7,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/hedgehog-pm/roles-service/internal/generated/bob/rolesdb"
-	"github.com/hedgehog-pm/roles-service/internal/roles/application"
-	"github.com/hedgehog-pm/roles-service/internal/roles/domain"
+	"github.com/hedgehog-pm/roles-service/internal/domain"
+	rolesdb "github.com/hedgehog-pm/roles-service/internal/generated/bob"
 )
 
 type Assignments struct{ pool *pgxpool.Pool }
@@ -26,8 +25,8 @@ func (s *Assignments) Assign(ctx context.Context, a domain.RoleAssignment) error
 	return err
 }
 
-func (s *Assignments) Ensure(ctx context.Context, a domain.RoleAssignment) (application.AssignmentResult, error) {
-	result := application.AssignmentResult{}
+func (s *Assignments) Ensure(ctx context.Context, a domain.RoleAssignment) (domain.AssignmentResult, error) {
+	result := domain.AssignmentResult{}
 
 	err := pgx.BeginFunc(ctx, s.pool, func(tx pgx.Tx) error {
 		lock := rolesdb.LockAssignmentRole(a.RoleID())
@@ -45,7 +44,7 @@ func (s *Assignments) Ensure(ctx context.Context, a domain.RoleAssignment) (appl
 			return restoreErr
 		}
 
-		if !errors.Is(storageError(err), application.ErrNotFound) {
+		if !errors.Is(storageError(err), domain.ErrNotFound) {
 			return err
 		}
 
@@ -68,7 +67,7 @@ func (s *Assignments) Ensure(ctx context.Context, a domain.RoleAssignment) (appl
 		return event(ctx, tx, "RoleAssigned", a.RoleID(), assignmentPayload{RoleID: a.RoleID(), UserID: a.UserID()})
 	})
 	if err != nil {
-		return application.AssignmentResult{}, storageError(err)
+		return domain.AssignmentResult{}, storageError(err)
 	}
 
 	return result, nil

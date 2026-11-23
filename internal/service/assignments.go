@@ -3,12 +3,12 @@ package application
 import (
 	"context"
 
-	"github.com/hedgehog-pm/roles-service/internal/roles/domain"
+	"github.com/hedgehog-pm/roles-service/internal/domain"
 )
 
 type AssignmentRepository interface {
-	Ensure(context.Context, domain.RoleAssignment) (AssignmentResult, error)
-	Page(context.Context, AssignmentFilter) (Page[AssignmentView], error)
+	Ensure(context.Context, domain.RoleAssignment) (domain.AssignmentResult, error)
+	Page(context.Context, domain.AssignmentFilter) (domain.Page[domain.AssignmentView], error)
 	Assign(context.Context, domain.RoleAssignment) error
 	Revoke(context.Context, int, int) error
 	ListAssignments(context.Context, int) ([]domain.RoleAssignment, error)

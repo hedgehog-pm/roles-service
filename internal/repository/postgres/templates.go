@@ -7,9 +7,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/hedgehog-pm/roles-service/internal/generated/bob/rolesdb"
-	"github.com/hedgehog-pm/roles-service/internal/roles/application"
-	"github.com/hedgehog-pm/roles-service/internal/roles/domain"
+	"github.com/hedgehog-pm/roles-service/internal/domain"
+	rolesdb "github.com/hedgehog-pm/roles-service/internal/generated/bob"
 )
 
 type Templates struct {
@@ -91,7 +90,7 @@ func (s *Templates) Update(ctx context.Context, value *domain.RoleTemplate, expe
 				return err
 			}
 
-			return application.ErrConflict
+			return domain.ErrConflict
 		}
 
 		if value.Version == expected {
@@ -134,7 +133,7 @@ func (s *Templates) Delete(ctx context.Context, id int, expected int64) error {
 		}
 
 		if value.Version != expected {
-			return application.ErrConflict
+			return domain.ErrConflict
 		}
 
 		_, err = queryExec(ctx, tx, rolesdb.DeleteTemplate(id))

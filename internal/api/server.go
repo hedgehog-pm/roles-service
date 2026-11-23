@@ -10,9 +10,8 @@ import (
 	"github.com/labstack/echo/v5"
 	middleware "github.com/oapi-codegen/echo-v5-middleware"
 
-	generated "github.com/hedgehog-pm/roles-service/internal/generated/api/roles"
-	"github.com/hedgehog-pm/roles-service/internal/roles/application"
-	"github.com/hedgehog-pm/roles-service/internal/roles/domain"
+	"github.com/hedgehog-pm/roles-service/internal/domain"
+	generated "github.com/hedgehog-pm/roles-service/internal/generated/api"
 )
 
 // Authenticate must verify the request credentials before returning a positive user ID.
@@ -82,9 +81,9 @@ func errorResponse(err error) (int, generated.Error) {
 	body := generated.Error{Code: "internal_error", Message: "internal error"}
 
 	switch {
-	case errors.Is(err, application.ErrNotFound):
+	case errors.Is(err, domain.ErrNotFound):
 		status = http.StatusNotFound
-	case errors.Is(err, application.ErrConflict):
+	case errors.Is(err, domain.ErrConflict):
 		status = http.StatusConflict
 	default:
 		if problem, ok := errors.AsType[*domain.Error](err); ok {

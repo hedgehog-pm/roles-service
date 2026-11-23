@@ -9,7 +9,7 @@ import (
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/labstack/echo/v5"
 
-	"github.com/hedgehog-pm/roles-service/internal/roles/domain"
+	"github.com/hedgehog-pm/roles-service/internal/domain"
 )
 
 func validationError(issues openapi3.MultiError) *echo.HTTPError {

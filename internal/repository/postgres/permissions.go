@@ -1,6 +1,6 @@
 package postgres
 
-import "github.com/hedgehog-pm/roles-service/internal/roles/domain"
+import "github.com/hedgehog-pm/roles-service/internal/domain"
 
 func permissionCodes(values []string) []domain.PermissionCode {
 	codes := make([]domain.PermissionCode, len(values))

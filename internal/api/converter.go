@@ -1,9 +1,9 @@
 package api
 
 import (
-	generated "github.com/hedgehog-pm/roles-service/internal/generated/api/roles"
-	"github.com/hedgehog-pm/roles-service/internal/roles/application"
-	"github.com/hedgehog-pm/roles-service/internal/roles/domain"
+	"github.com/hedgehog-pm/roles-service/internal/domain"
+	generated "github.com/hedgehog-pm/roles-service/internal/generated/api"
+	application "github.com/hedgehog-pm/roles-service/internal/service"
 )
 
 func permissionCodes(values []string) []domain.PermissionCode {

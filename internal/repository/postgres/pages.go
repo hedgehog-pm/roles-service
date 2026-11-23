@@ -5,13 +5,12 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
-	"github.com/hedgehog-pm/roles-service/internal/generated/bob/rolesdb"
-	"github.com/hedgehog-pm/roles-service/internal/roles/application"
-	"github.com/hedgehog-pm/roles-service/internal/roles/domain"
+	"github.com/hedgehog-pm/roles-service/internal/domain"
+	rolesdb "github.com/hedgehog-pm/roles-service/internal/generated/bob"
 )
 
-func (s *Roles) Page(ctx context.Context, scope domain.ScopeRef, options application.ListOptions) (application.Page[*domain.Role], error) {
-	result := application.Page[*domain.Role]{Items: make([]*domain.Role, 0), Limit: options.Limit, Offset: options.Offset}
+func (s *Roles) Page(ctx context.Context, scope domain.ScopeRef, options domain.ListOptions) (domain.Page[*domain.Role], error) {
+	result := domain.Page[*domain.Role]{Items: make([]*domain.Role, 0), Limit: options.Limit, Offset: options.Offset}
 	err := pgx.BeginTxFunc(ctx, s.pool, pgx.TxOptions{IsoLevel: pgx.RepeatableRead, AccessMode: pgx.ReadOnly}, func(tx pgx.Tx) error {
 		count := rolesdb.CountRoles(string(scope.Type()), scope.ID(), options.Search, string(options.PermissionCode))
 
@@ -43,8 +42,8 @@ func (s *Roles) Page(ctx context.Context, scope domain.ScopeRef, options applica
 	return result, storageError(err)
 }
 
-func (s *Templates) Page(ctx context.Context, filter application.TemplateFilter, options application.ListOptions) (application.Page[*domain.RoleTemplate], error) {
-	result := application.Page[*domain.RoleTemplate]{Items: make([]*domain.RoleTemplate, 0), Limit: options.Limit, Offset: options.Offset}
+func (s *Templates) Page(ctx context.Context, filter domain.TemplateFilter, options domain.ListOptions) (domain.Page[*domain.RoleTemplate], error) {
+	result := domain.Page[*domain.RoleTemplate]{Items: make([]*domain.RoleTemplate, 0), Limit: options.Limit, Offset: options.Offset}
 	err := pgx.BeginTxFunc(ctx, s.pool, pgx.TxOptions{IsoLevel: pgx.RepeatableRead, AccessMode: pgx.ReadOnly}, func(tx pgx.Tx) error {
 		count := rolesdb.CountTemplates(string(filter.TargetScopeType), filter.SystemID, options.Search)
 
@@ -76,8 +75,8 @@ func (s *Templates) Page(ctx context.Context, filter application.TemplateFilter,
 	return result, storageError(err)
 }
 
-func (s *Assignments) Page(ctx context.Context, filter application.AssignmentFilter) (application.Page[application.AssignmentView], error) {
-	result := application.Page[application.AssignmentView]{Items: make([]application.AssignmentView, 0), Limit: filter.Limit, Offset: filter.Offset}
+func (s *Assignments) Page(ctx context.Context, filter domain.AssignmentFilter) (domain.Page[domain.AssignmentView], error) {
+	result := domain.Page[domain.AssignmentView]{Items: make([]domain.AssignmentView, 0), Limit: filter.Limit, Offset: filter.Offset}
 	err := pgx.BeginTxFunc(ctx, s.pool, pgx.TxOptions{IsoLevel: pgx.RepeatableRead, AccessMode: pgx.ReadOnly}, func(tx pgx.Tx) error {
 		count := rolesdb.CountAssignments(filter.RoleID, filter.UserID, string(filter.ScopeType), filter.ScopeID)
 
@@ -100,7 +99,7 @@ func (s *Assignments) Page(ctx context.Context, filter application.AssignmentFil
 				return err
 			}
 
-			result.Items = append(result.Items, application.AssignmentView{RoleID: row.RoleID, UserID: row.UserID, RoleName: row.RoleName, Scope: scope, AssignedBy: row.AssignedBy, AssignedAt: row.AssignedAt})
+			result.Items = append(result.Items, domain.AssignmentView{RoleID: row.RoleID, UserID: row.UserID, RoleName: row.RoleName, Scope: scope, AssignedBy: row.AssignedBy, AssignedAt: row.AssignedAt})
 		}
 
 		return nil

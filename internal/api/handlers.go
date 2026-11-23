@@ -1,8 +1,8 @@
 package api
 
 import (
-	generated "github.com/hedgehog-pm/roles-service/internal/generated/api/roles"
-	"github.com/hedgehog-pm/roles-service/internal/roles/application"
+	generated "github.com/hedgehog-pm/roles-service/internal/generated/api"
+	application "github.com/hedgehog-pm/roles-service/internal/service"
 )
 
 type Handler struct {

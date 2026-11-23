@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/hedgehog-pm/roles-service/internal/api"
-	"github.com/hedgehog-pm/roles-service/internal/roles"
 	"github.com/hedgehog-pm/roles-service/internal/storage/postgres"
 )
 
@@ -36,7 +35,7 @@ func run() error {
 	}
 	defer pool.Close()
 
-	module, err := roles.New(pool)
+	module, err := newRolesModule(pool)
 	if err != nil {
 		return err
 	}

@@ -1,27 +1,27 @@
-package roles
+package main
 
 import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/hedgehog-pm/roles-service/internal/roles/application"
-	"github.com/hedgehog-pm/roles-service/internal/roles/domain"
-	"github.com/hedgehog-pm/roles-service/internal/roles/infrastructure/postgres"
+	"github.com/hedgehog-pm/roles-service/internal/domain"
+	"github.com/hedgehog-pm/roles-service/internal/repository/postgres"
+	application "github.com/hedgehog-pm/roles-service/internal/service"
 )
 
-type Module struct {
+type rolesModule struct {
 	Roles       *application.Roles
 	Templates   *application.Templates
 	Assignments *application.Assignments
 	Permissions *application.Permissions
 }
 
-func New(pool *pgxpool.Pool) (*Module, error) {
+func newRolesModule(pool *pgxpool.Pool) (*rolesModule, error) {
 	catalog, err := domain.NewPermissionCatalog()
 	if err != nil {
 		return nil, err
 	}
 
-	return &Module{
+	return &rolesModule{
 		Roles:       application.NewRoles(postgres.NewRoles(pool, catalog), catalog),
 		Templates:   application.NewTemplates(postgres.NewTemplates(pool, catalog), catalog),
 		Assignments: application.NewAssignments(postgres.NewAssignments(pool)),
