@@ -5,10 +5,14 @@ import (
 
 	"github.com/hedgehog-pm/roles-service/internal/domain"
 	generated "github.com/hedgehog-pm/roles-service/internal/generated/api"
-	application "github.com/hedgehog-pm/roles-service/internal/service"
+	"github.com/hedgehog-pm/roles-service/internal/usecase/listroleassignments"
+	"github.com/hedgehog-pm/roles-service/internal/usecase/roleassignment"
 )
 
-type RoleAssignmentHandler struct{ assignments *application.Assignments }
+type RoleAssignmentHandler struct {
+	listassignments *listroleassignments.Usecase
+	assignments     *roleassignment.Usecase
+}
 
 func (h *RoleAssignmentHandler) AssignRole(ctx context.Context, request generated.AssignRoleRequestObject) (generated.AssignRoleResponseObject, error) {
 	actor, err := actorID(ctx)
@@ -16,7 +20,7 @@ func (h *RoleAssignmentHandler) AssignRole(ctx context.Context, request generate
 		return nil, err
 	}
 
-	result, err := h.assignments.Ensure(ctx, actor, request.RoleID, request.UserID)
+	result, err := h.assignments.Assign(ctx, actor, request.RoleID, request.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +47,7 @@ func (h *RoleAssignmentHandler) RevokeRole(ctx context.Context, request generate
 }
 
 func (h *RoleAssignmentHandler) ListAssignments(ctx context.Context, request generated.ListAssignmentsRequestObject) (generated.ListAssignmentsResponseObject, error) {
-	values, err := h.assignments.Page(ctx, domain.AssignmentFilter{RoleID: request.RoleID, Pagination: pagination(request.Params.Limit, request.Params.Offset)})
+	values, err := h.listassignments.Do(ctx, listroleassignments.Params{RoleID: request.RoleID, Pagination: pageParams(request.Params.Limit, request.Params.Offset)})
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +61,7 @@ func (h *RoleAssignmentHandler) ListAssignments(ctx context.Context, request gen
 }
 
 func (h *RoleAssignmentHandler) ListUserAssignments(ctx context.Context, request generated.ListUserAssignmentsRequestObject) (generated.ListUserAssignmentsResponseObject, error) {
-	values, err := h.assignments.Page(ctx, domain.AssignmentFilter{UserID: request.UserID, ScopeType: domain.ScopeType(request.Params.ScopeType), ScopeID: request.Params.ScopeID, Pagination: pagination(request.Params.Limit, request.Params.Offset)})
+	values, err := h.listassignments.Do(ctx, listroleassignments.Params{UserID: request.UserID, ScopeType: domain.ScopeType(request.Params.ScopeType), ScopeID: request.Params.ScopeID, Pagination: pageParams(request.Params.Limit, request.Params.Offset)})
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +75,7 @@ func (h *RoleAssignmentHandler) ListUserAssignments(ctx context.Context, request
 }
 
 func (h *RoleAssignmentHandler) ListScopeAssignments(ctx context.Context, request generated.ListScopeAssignmentsRequestObject) (generated.ListScopeAssignmentsResponseObject, error) {
-	values, err := h.assignments.Page(ctx, domain.AssignmentFilter{ScopeType: domain.ScopeType(request.Params.ScopeType), ScopeID: request.Params.ScopeID, Pagination: pagination(request.Params.Limit, request.Params.Offset)})
+	values, err := h.listassignments.Do(ctx, listroleassignments.Params{ScopeType: domain.ScopeType(request.Params.ScopeType), ScopeID: request.Params.ScopeID, Pagination: pageParams(request.Params.Limit, request.Params.Offset)})
 	if err != nil {
 		return nil, err
 	}

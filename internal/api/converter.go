@@ -1,29 +1,23 @@
 package api
 
 import (
+	"github.com/samber/lo"
+
 	"github.com/hedgehog-pm/roles-service/internal/domain"
 	generated "github.com/hedgehog-pm/roles-service/internal/generated/api"
-	application "github.com/hedgehog-pm/roles-service/internal/service"
+	"github.com/hedgehog-pm/roles-service/internal/usecase/permission"
 )
 
 func permissionCodes(values []string) []domain.PermissionCode {
-	result := make([]domain.PermissionCode, len(values))
-	for i, v := range values {
-		result[i] = domain.PermissionCode(v)
-	}
-
-	return result
+	return lo.Map(values, func(v string, _ int) domain.PermissionCode { return domain.PermissionCode(v) })
 }
 
-func permissionDTO(permissions *application.Permissions, set domain.PermissionSet) []generated.Permission {
+func permissionDTO(permissions *permission.Usecase, set domain.PermissionSet) []generated.Permission {
 	values := permissions.Describe(set)
 
-	result := make([]generated.Permission, 0, len(values))
-	for _, v := range values {
-		result = append(result, generated.Permission{Code: string(v.Code), ScopeType: generated.ScopeType(v.ScopeType), Title: v.Title, Description: v.Description})
-	}
-
-	return result
+	return lo.Map(values, func(v domain.PermissionDescriptor, _ int) generated.Permission {
+		return generated.Permission{Code: string(v.Code), ScopeType: generated.ScopeType(v.ScopeType), Title: v.Title, Description: v.Description}
+	})
 }
 
 func assignmentDTO(v domain.RoleAssignment) generated.RoleAssignment {

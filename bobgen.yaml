@@ -12,4 +12,6 @@ types:
 psql:
   driver: github.com/jackc/pgx/v5/stdlib
   queries:
-    - internal/generated/bob
+    - internal/generated/bob/role
+    - internal/generated/bob/roletemplate
+    - internal/generated/bob/roleassignment

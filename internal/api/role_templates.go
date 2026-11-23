@@ -3,14 +3,22 @@ package api
 import (
 	"context"
 
+	"github.com/samber/lo"
+
 	"github.com/hedgehog-pm/roles-service/internal/domain"
 	generated "github.com/hedgehog-pm/roles-service/internal/generated/api"
-	application "github.com/hedgehog-pm/roles-service/internal/service"
+	"github.com/hedgehog-pm/roles-service/internal/pagination"
+	"github.com/hedgehog-pm/roles-service/internal/usecase/createtemplate"
+	"github.com/hedgehog-pm/roles-service/internal/usecase/permission"
+	"github.com/hedgehog-pm/roles-service/internal/usecase/roletemplate"
+	"github.com/hedgehog-pm/roles-service/internal/usecase/updatetemplate"
 )
 
 type RoleTemplateHandler struct {
-	templates   *application.Templates
-	permissions *application.Permissions
+	createtemplate *createtemplate.Usecase
+	updatetemplate *updatetemplate.Usecase
+	templates      *roletemplate.Usecase
+	permissions    *permission.Usecase
 }
 
 func (h *RoleTemplateHandler) templateDTO(v *domain.RoleTemplate) generated.RoleTemplate {
@@ -23,7 +31,7 @@ func (h *RoleTemplateHandler) CreateTemplate(ctx context.Context, request genera
 		return nil, err
 	}
 
-	value, err := h.templates.Create(ctx, actor, application.CreateTemplateInput{Name: request.Body.Name, PermissionCodes: permissionCodes(request.Body.PermissionCodes), SystemID: request.Body.SystemID, TargetScopeType: domain.ScopeType(request.Body.TargetScopeType)})
+	value, err := h.createtemplate.Do(ctx, actor, createtemplate.Params{Name: request.Body.Name, PermissionCodes: permissionCodes(request.Body.PermissionCodes), SystemID: request.Body.SystemID, TargetScopeType: domain.ScopeType(request.Body.TargetScopeType)})
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +40,7 @@ func (h *RoleTemplateHandler) CreateTemplate(ctx context.Context, request genera
 }
 
 func (h *RoleTemplateHandler) GetTemplate(ctx context.Context, request generated.GetTemplateRequestObject) (generated.GetTemplateResponseObject, error) {
-	if err := h.checkTemplateSystem(ctx, request.ID, request.Params.SystemID); err != nil {
+	if err := h.templates.CheckSystem(ctx, request.ID, request.Params.SystemID); err != nil {
 		return nil, err
 	}
 
@@ -45,7 +53,7 @@ func (h *RoleTemplateHandler) GetTemplate(ctx context.Context, request generated
 }
 
 func (h *RoleTemplateHandler) UpdateTemplate(ctx context.Context, request generated.UpdateTemplateRequestObject) (generated.UpdateTemplateResponseObject, error) {
-	if err := h.checkTemplateSystem(ctx, request.ID, request.Params.SystemID); err != nil {
+	if err := h.templates.CheckSystem(ctx, request.ID, request.Params.SystemID); err != nil {
 		return nil, err
 	}
 
@@ -54,7 +62,7 @@ func (h *RoleTemplateHandler) UpdateTemplate(ctx context.Context, request genera
 		return nil, err
 	}
 
-	value, err := h.templates.Update(ctx, actor, application.UpdateTemplateInput{ID: request.ID, Version: request.Body.ExpectedVersion, Name: request.Body.Name, PermissionCodes: permissionCodes(request.Body.PermissionCodes)})
+	value, err := h.updatetemplate.Do(ctx, actor, updatetemplate.Params{ID: request.ID, Version: request.Body.ExpectedVersion, Name: request.Body.Name, PermissionCodes: permissionCodes(request.Body.PermissionCodes)})
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +71,7 @@ func (h *RoleTemplateHandler) UpdateTemplate(ctx context.Context, request genera
 }
 
 func (h *RoleTemplateHandler) DeleteTemplate(ctx context.Context, request generated.DeleteTemplateRequestObject) (generated.DeleteTemplateResponseObject, error) {
-	if err := h.checkTemplateSystem(ctx, request.ID, request.Params.SystemID); err != nil {
+	if err := h.templates.CheckSystem(ctx, request.ID, request.Params.SystemID); err != nil {
 		return nil, err
 	}
 
@@ -80,9 +88,9 @@ func (h *RoleTemplateHandler) DeleteTemplate(ctx context.Context, request genera
 }
 
 func (h *RoleTemplateHandler) ListTemplates(ctx context.Context, request generated.ListTemplatesRequestObject) (generated.ListTemplatesResponseObject, error) {
-	filter := domain.TemplateFilter{SystemID: request.Params.SystemID, TargetScopeType: domain.ScopeType(request.Params.TargetScopeType)}
+	filter := roletemplate.Filter{SystemID: request.Params.SystemID, TargetScopeType: domain.ScopeType(request.Params.TargetScopeType)}
 
-	options := domain.ListOptions{Pagination: pagination(request.Params.Limit, request.Params.Offset), Search: optional(request.Params.Search), Sort: string(optional(request.Params.Sort)), Direction: string(optional(request.Params.Direction))}
+	options := pagination.Options{Pagination: pageParams(request.Params.Limit, request.Params.Offset), Search: lo.FromPtr(request.Params.Search), Sort: string(lo.FromPtr(request.Params.Sort)), Direction: string(lo.FromPtr(request.Params.Direction))}
 
 	values, err := h.templates.Page(ctx, filter, options)
 	if err != nil {
@@ -95,17 +103,4 @@ func (h *RoleTemplateHandler) ListTemplates(ctx context.Context, request generat
 	}
 
 	return result, nil
-}
-
-func (h *RoleTemplateHandler) checkTemplateSystem(ctx context.Context, id, systemID int) error {
-	value, err := h.templates.Get(ctx, id)
-	if err != nil {
-		return err
-	}
-
-	if value.SystemID != systemID {
-		return domain.ErrNotFound
-	}
-
-	return nil
 }

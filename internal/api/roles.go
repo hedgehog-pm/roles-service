@@ -3,14 +3,24 @@ package api
 import (
 	"context"
 
+	"github.com/samber/lo"
+
 	"github.com/hedgehog-pm/roles-service/internal/domain"
 	generated "github.com/hedgehog-pm/roles-service/internal/generated/api"
-	application "github.com/hedgehog-pm/roles-service/internal/service"
+	"github.com/hedgehog-pm/roles-service/internal/pagination"
+	"github.com/hedgehog-pm/roles-service/internal/usecase/createrole"
+	"github.com/hedgehog-pm/roles-service/internal/usecase/listroles"
+	"github.com/hedgehog-pm/roles-service/internal/usecase/permission"
+	"github.com/hedgehog-pm/roles-service/internal/usecase/role"
+	"github.com/hedgehog-pm/roles-service/internal/usecase/updaterole"
 )
 
 type RoleHandler struct {
-	roles       *application.Roles
-	permissions *application.Permissions
+	listroles   *listroles.Usecase
+	createrole  *createrole.Usecase
+	updaterole  *updaterole.Usecase
+	roles       *role.Usecase
+	permissions *permission.Usecase
 }
 
 func (h *RoleHandler) roleDTO(v *domain.Role) generated.Role {
@@ -28,7 +38,7 @@ func (h *RoleHandler) CreateRole(ctx context.Context, request generated.CreateRo
 		return nil, err
 	}
 
-	value, err := h.roles.Create(ctx, actor, application.CreateRoleInput{Name: request.Body.Name, PermissionCodes: permissionCodes(request.Body.PermissionCodes), Scope: scope})
+	value, err := h.createrole.Do(ctx, actor, createrole.Params{Name: request.Body.Name, PermissionCodes: permissionCodes(request.Body.PermissionCodes), Scope: scope})
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +61,7 @@ func (h *RoleHandler) UpdateRole(ctx context.Context, request generated.UpdateRo
 		return nil, err
 	}
 
-	value, err := h.roles.Update(ctx, actor, application.UpdateRoleInput{ID: request.ID, Version: request.Body.ExpectedVersion, Name: request.Body.Name, PermissionCodes: permissionCodes(request.Body.PermissionCodes)})
+	value, err := h.updaterole.Do(ctx, actor, updaterole.Params{ID: request.ID, Version: request.Body.ExpectedVersion, Name: request.Body.Name, PermissionCodes: permissionCodes(request.Body.PermissionCodes)})
 	if err != nil {
 		return nil, err
 	}
@@ -78,9 +88,9 @@ func (h *RoleHandler) ListRoles(ctx context.Context, request generated.ListRoles
 		return nil, err
 	}
 
-	options := domain.ListOptions{Pagination: pagination(request.Params.Limit, request.Params.Offset), Search: optional(request.Params.Search), Sort: string(optional(request.Params.Sort)), Direction: string(optional(request.Params.Direction)), PermissionCode: domain.PermissionCode(optional(request.Params.PermissionCode))}
+	options := pagination.Options{Pagination: pageParams(request.Params.Limit, request.Params.Offset), Search: lo.FromPtr(request.Params.Search), Sort: string(lo.FromPtr(request.Params.Sort)), Direction: string(lo.FromPtr(request.Params.Direction))}
 
-	values, err := h.roles.Page(ctx, filter, options)
+	values, err := h.listroles.Do(ctx, filter, listroles.Params{Options: options, PermissionCode: domain.PermissionCode(lo.FromPtr(request.Params.PermissionCode))})
 	if err != nil {
 		return nil, err
 	}

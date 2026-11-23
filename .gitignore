@@ -1,1 +1,4 @@
 /bin/
+/.venv-docs/
+/site/
+__pycache__/

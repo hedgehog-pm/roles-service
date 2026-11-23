@@ -12,7 +12,21 @@ import (
 	"time"
 
 	"github.com/hedgehog-pm/roles-service/internal/api"
+	"github.com/hedgehog-pm/roles-service/internal/domain"
+	rolerepository "github.com/hedgehog-pm/roles-service/internal/repository/role"
+	assignmentrepository "github.com/hedgehog-pm/roles-service/internal/repository/roleassignment"
+	templaterepository "github.com/hedgehog-pm/roles-service/internal/repository/roletemplate"
 	"github.com/hedgehog-pm/roles-service/internal/storage/postgres"
+	"github.com/hedgehog-pm/roles-service/internal/usecase/createrole"
+	"github.com/hedgehog-pm/roles-service/internal/usecase/createtemplate"
+	"github.com/hedgehog-pm/roles-service/internal/usecase/listroleassignments"
+	"github.com/hedgehog-pm/roles-service/internal/usecase/listroles"
+	"github.com/hedgehog-pm/roles-service/internal/usecase/permission"
+	"github.com/hedgehog-pm/roles-service/internal/usecase/role"
+	"github.com/hedgehog-pm/roles-service/internal/usecase/roleassignment"
+	"github.com/hedgehog-pm/roles-service/internal/usecase/roletemplate"
+	"github.com/hedgehog-pm/roles-service/internal/usecase/updaterole"
+	"github.com/hedgehog-pm/roles-service/internal/usecase/updatetemplate"
 )
 
 func main() {
@@ -35,10 +49,20 @@ func run() error {
 	}
 	defer pool.Close()
 
-	module, err := newRolesModule(pool)
+	catalog, err := domain.NewPermissionCatalog()
 	if err != nil {
 		return err
 	}
+
+	transactor := postgres.NewTransactor(pool)
+	roles := rolerepository.New(pool, catalog)
+	templates := templaterepository.New(pool, catalog)
+	assignments := assignmentrepository.New(pool)
+	permissions := permission.New(catalog)
+	roleHandler := api.NewRoleHandler(role.New(roles, transactor), listroles.New(roles, transactor, catalog), createrole.New(roles, transactor, catalog), updaterole.New(roles, transactor, catalog), permissions)
+	templateHandler := api.NewRoleTemplateHandler(roletemplate.New(templates, transactor), createtemplate.New(templates, transactor, catalog), updatetemplate.New(templates, transactor, catalog), permissions)
+	assignmentHandler := api.NewRoleAssignmentHandler(roleassignment.New(assignments, transactor), listroleassignments.New(assignmentrepository.NewReader(pool), transactor))
+	handler := api.NewHandler(roleHandler, templateHandler, assignmentHandler, permissions)
 
 	var authenticate api.Authenticate
 
@@ -53,7 +77,7 @@ func run() error {
 		slog.WarnContext(ctx, "local development authentication bypass enabled", "actor_id", id)
 	}
 
-	server, err := api.NewServer(api.NewHandler(module.Roles, module.Templates, module.Assignments, module.Permissions), authenticate)
+	server, err := api.NewServer(handler, authenticate)
 	if err != nil {
 		return err
 	}

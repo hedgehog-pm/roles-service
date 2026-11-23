@@ -5,10 +5,10 @@ import (
 
 	"github.com/hedgehog-pm/roles-service/internal/domain"
 	generated "github.com/hedgehog-pm/roles-service/internal/generated/api"
-	application "github.com/hedgehog-pm/roles-service/internal/service"
+	"github.com/hedgehog-pm/roles-service/internal/usecase/permission"
 )
 
-type PermissionHandler struct{ permissions *application.Permissions }
+type PermissionHandler struct{ permissions *permission.Usecase }
 
 func (h *PermissionHandler) ListPermissions(_ context.Context, request generated.ListPermissionsRequestObject) (generated.ListPermissionsResponseObject, error) {
 	values, err := h.permissions.List(domain.ScopeType(request.Params.ScopeType))

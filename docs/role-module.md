@@ -2,19 +2,27 @@
 
 ## Реализованные сценарии
 
-Точка сборки — `roles.New(pool)`. Она создаёт прикладные сервисы:
+Зависимости явно собираются в cmd/service/main.go: pool → Transactor →
+репозитории агрегатов → usecase → HTTP handlers → сервер.
 
-| Сервис | Операции |
-| --- | --- |
-| Roles | Create, Get, List по ScopeRef, Update имени и прав, Delete |
-| Templates | Create, Get, List по system ID и целевому scope, Update, Delete |
-| Assignments | Assign, Revoke, List назначений роли |
-| Permissions | List каталога по типу scope |
+В internal/usecase/role находятся Get/Delete, в roletemplate — Get/Page/Delete
+и проверка принадлежности системе, в roleassignment — List/Assign/Revoke.
+Создание и изменение роли и шаблона выделены в createrole/updaterole и
+createtemplate/updatetemplate: эти сценарии используют каталог прав и правила
+изменения агрегата. listroles дополнительно проверяет фильтр права по каталогу.
+listroleassignments читает проекцию назначения с именем и scope роли через
+отдельный Reader. Каждый пакет объявляет интерфейсы потребителя в interface.go.
+Каталог прав обслуживает permission.Usecase.
 
-Create/Update принимают структуры Input. Actor ID передаётся отдельным аргументом
-из доверенного вызывающего кода. Update заменяет имя и набор прав целиком.
-Для Update/Delete обязательна ожидаемая версия. Два изменения домена (имени
-и прав) увеличивают версию дважды, как и существующие доменные методы.
+Фильтры принадлежат потребляющим usecase. Общие параметры страниц, сортировка
+и результат Page находятся в internal/pagination. Доменные агрегаты не зависят
+от фильтров или пагинации. Основания выбора пакетов и схема зависимостей
+описаны в [архитектуре](architecture-review.md).
+
+Create/Update принимают Params. Actor ID передаётся отдельным аргументом из
+доверенного вызывающего кода. Update полностью заменяет имя и права.
+Для Update/Delete обязательна ожидаемая версия. При изменении имени и прав
+прикладной сценарий нормализует итоговую версию до expected_version + 1.
 Запрос без изменений сохраняет версию и не добавляет событие.
 
 PermissionCatalog проверяет коды и scope, объединяет дубликаты. Роли и шаблоны
@@ -28,13 +36,13 @@ Instantiate и сохраняемой связи с шаблоном нет.
 
 ## Хранение
 
-Именованные SQL-запросы находятся в `internal/generated/bob/rolesdb/queries.sql`.
-После изменения запросов или Goose-миграций примените миграции к своей БД,
-задайте `PSQL_DSN` (по умолчанию Make использует `DATABASE_URL`) и выполните
-`make generate`. Bob читает живую схему PostgreSQL и генерирует файлы
-`queries.bob.go` и `queries.bob.sql` рядом с исходными запросами.
-Без Make выполните `go tool bobgen-psql -c bobgen.yaml` и
-`go tool golangci-lint run --enable-only gocritic`.
+Именованные SQL-запросы находятся в internal/repository/{role,roletemplate,roleassignment}/queries.sql.
+Bob генерирует отдельные пакеты в internal/generated/bob/{role,roletemplate,roleassignment}.
+Цель make generate-sql временно копирует SQL в каталоги генерации и удаляет копии
+при завершении. make generate запускает SQL и API генерацию. Для SQL нужна
+мигрированная PostgreSQL и PSQL_DSN (по умолчанию DATABASE_URL).
+Сгенерированные файлы не редактируются вручную.
+
 Настройки `bobgen.yaml` отображают PostgreSQL INT в Go int,
 а массивы строк — в []string для сканирования через pgx.
 Версия агрегата остаётся BIGINT/int64.
@@ -64,7 +72,7 @@ RestoreRoleAssignment восстанавливает закрытое состо
 - удаление шаблона: шаблон и каскадное удаление его прав.
 
 Update использует условие по ожидаемой версии. Delete проверяет версию под
-блокировкой строки. Конфликт версии возвращает application.ErrConflict,
+блокировкой строки. Конфликт версии возвращает domain.ErrConflict,
 отсутствующий объект — ErrNotFound, в том числе при конкурентном удалении.
 Повторное назначение возвращает исходную запись без нового события, автора и времени.
 Повторный отзыв возвращает успех без события, если роль ещё существует.
@@ -100,7 +108,12 @@ RoleRevoked. RoleUpdated хранит полный актуальный набо
 Технический пример service-tracker изучен в revision
 1b9a0022cb6734a86b76be0ddffc268b8263515d: pgxpool, Goose, отдельная команда
 миграций и интерфейсы потребителя. Его БД и секреты не используются.
-Транзакции здесь принадлежат операциям хранилища и передаются явно.
+Границы транзакций принадлежат usecase. postgres.Transactor.InTx передаёт
+транзакцию через context; postgres.Executor выбирает её вместо пула. Вложенный
+InTx использует ту же транзакцию; ошибка должна дойти до внешнего вызова для отката.
+Страницы используют InReadTx: read-only repeatable-read сохраняет единый снимок
+для count и данных. Репозитории самостоятельно транзакций не открывают.
+Общий postgres.MapError сохраняет ErrNotFound/ErrConflict и исходные неизвестные ошибки.
 
 ## Неподключённые интеграции
 
@@ -126,18 +139,15 @@ Publisher будет читать outbox; AuthZ/SpiceDB handlers будут от
 Обычные команды: make fmt, make lint, go build ./cmd/..., go test ./....
 Если make отсутствует, команды целей выполняются напрямую:
 go tool golangci-lint fmt; go tool golangci-lint config verify;
-go tool golangci-lint run; go run github.com/fe3dback/go-arch-lint@v1.19.0 check.
+go tool golangci-lint run.
 
-Интеграционные тесты требуют ROLES_TEST_DATABASE_URL. Имя отдельной тестовой
-БД должно оканчиваться на _test. Тесты применяют миграции и меняют данные и
-временные ограничения таблиц; не указывать рабочую БД и не запускать несколько
-копий этих тестов одновременно на одной БД. Без настройки интеграционные
-тесты явно пропускаются. Запуск: go test -count=1 ./....
+Тестовые файлы отсутствуют по решению пользователя для этого рефакторинга.
+Команда go test ./... проверяет компилируемость пакетов, но не поведение.
 
 ## HTTP API
 
 OpenAPI и конфигурация генератора: `api/server/roles/`.
-Generated-код: `internal/generated/api/roles/server.go`.
+Generated-код: `internal/generated/api/server.go`.
 Strict handlers и HTTP middleware: `internal/api/`.
 
 | Метод | Маршрут | Назначение |
@@ -164,7 +174,7 @@ actorID/createdBy/assignedBy не принимаются в теле запро�
 
 ```sh
 go tool oapi-codegen -config api/server/roles/oapi-codegen.yaml api/server/roles/openapi.yaml
-go tool golangci-lint run --enable-only gocritic
+go tool golangci-lint run
 ```
 
 Референс HTTP-слоя — service-tracker, ревизия

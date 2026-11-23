@@ -15,7 +15,7 @@ require (
 	github.com/oapi-codegen/echo-v5-middleware v0.2.1
 	github.com/oapi-codegen/runtime v1.7.0
 	github.com/pressly/goose/v3 v3.29.0
-	github.com/quasilyte/go-ruleguard/dsl v0.3.23
+	github.com/samber/lo v1.53.0
 	github.com/stephenafamo/bob v0.50.0
 	github.com/stephenafamo/scan v0.9.0
 )
@@ -197,6 +197,7 @@ require (
 	github.com/prometheus/procfs v0.22.0 // indirect
 	github.com/qdm12/reprint v0.0.0-20200326205758-722754a53494 // indirect
 	github.com/quasilyte/go-ruleguard v0.4.5 // indirect
+	github.com/quasilyte/go-ruleguard/dsl v0.3.23 // indirect
 	github.com/quasilyte/gogrep v0.5.0 // indirect
 	github.com/quasilyte/regex/syntax v0.0.0-20210819130434-b3f0c404a727 // indirect
 	github.com/quasilyte/stdinfo v0.0.0-20220114132959-f7386bf02567 // indirect
