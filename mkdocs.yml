@@ -22,9 +22,6 @@ theme:
 plugins:
   - search:
       lang: [ru, en]
-  - swagger-ui-tag:
-      supportedSubmitMethods: []
-      validatorUrl: none
 
 hooks:
   - scripts/docs.py
@@ -53,7 +50,6 @@ nav:
   - Быстрый старт: quick-start.md
   - Интеграция фронтенда: guides/frontend.md
   - Ограничения: limitations.md
-  - API и Swagger: api/index.md
   - Для backend:
       - Устройство сервиса: role-module.md
       - Проверка архитектуры: architecture-review.md

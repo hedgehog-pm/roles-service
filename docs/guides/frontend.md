@@ -71,9 +71,8 @@ ID — целые числа от 1 до 2147483647. `scope_type` и `target_sco
 
 ```json
 {
-  "code": "empty_permissions",
-  "message": "at least one permission is required",
-  "details": [{"field": "permission_codes", "code": "empty_permissions", "message": "at least one permission is required"}]
+  "code": "invalid_input",
+  "message": "invalid input"
 }
 ```
 
@@ -83,13 +82,11 @@ ID — целые числа от 1 до 2147483647. `scope_type` и `target_sco
 | 400 | `unknown_permission_code` | Обновить каталог и проверить выбранные коды |
 | 400 | `permission_scope_mismatch` | Проверить scope и выбранные права |
 | 400 | `empty_permissions` | Потребовать хотя бы одно право |
-| 401 | `unauthorized` | Обработать отказ идентификации по контракту окружения |
 | 404 | `not_found` | Убрать устаревший объект либо проверить system_id |
 | 409 | `version_conflict` | Загрузить актуальную версию и согласовать черновик |
 | 500 | `internal_error` | Показать общую ошибку, технические детали не доступны |
-| 503 | `unavailable` | Сообщить о недоступности сервиса/идентификации |
 
-`details` необязательно. Не рассчитывайте на полный список всех ошибок: текущий обработчик выделяет одну ошибку. `field` может быть `request`, именем query-параметра или путём JSON через точку. Если UI не знает поле, покажите общую ошибку. Логику строите по HTTP и `code`, а не по английскому `message`.
+Ошибки схемы OpenAPI возвращают `invalid_input` без `details`, в том числе при пустом `permission_codes`. Доменные ошибки могут содержать `details`. Логику стройте по HTTP и `code`, а не по английскому `message`.
 
 ## Минимальный fetch-клиент
 

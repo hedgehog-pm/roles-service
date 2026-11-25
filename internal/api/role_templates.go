@@ -26,10 +26,7 @@ func (h *RoleTemplateHandler) templateDTO(v *domain.RoleTemplate) generated.Role
 }
 
 func (h *RoleTemplateHandler) CreateTemplate(ctx context.Context, request generated.CreateTemplateRequestObject) (generated.CreateTemplateResponseObject, error) {
-	actor, err := actorID(ctx)
-	if err != nil {
-		return nil, err
-	}
+	actor := actorID(ctx)
 
 	value, err := h.createtemplate.Do(ctx, actor, createtemplate.Params{Name: request.Body.Name, PermissionCodes: permissionCodes(request.Body.PermissionCodes), SystemID: request.Body.SystemID, TargetScopeType: domain.ScopeType(request.Body.TargetScopeType)})
 	if err != nil {
@@ -57,10 +54,7 @@ func (h *RoleTemplateHandler) UpdateTemplate(ctx context.Context, request genera
 		return nil, err
 	}
 
-	actor, err := actorID(ctx)
-	if err != nil {
-		return nil, err
-	}
+	actor := actorID(ctx)
 
 	value, err := h.updatetemplate.Do(ctx, actor, updatetemplate.Params{ID: request.ID, Version: request.Body.ExpectedVersion, Name: request.Body.Name, PermissionCodes: permissionCodes(request.Body.PermissionCodes)})
 	if err != nil {
@@ -75,10 +69,7 @@ func (h *RoleTemplateHandler) DeleteTemplate(ctx context.Context, request genera
 		return nil, err
 	}
 
-	actor, err := actorID(ctx)
-	if err != nil {
-		return nil, err
-	}
+	actor := actorID(ctx)
 
 	if err := h.templates.Delete(ctx, actor, request.ID, request.Params.ExpectedVersion); err != nil {
 		return nil, err

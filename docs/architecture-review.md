@@ -29,7 +29,7 @@ cmd/
   service/                   сборка сервиса и завершение процесса
   migrate/                   запуск миграций
 internal/
-  api/                       HTTP, аутентификация, DTO и ошибки транспорта
+  api/                       HTTP, контекст автора, DTO и ошибки транспорта
   domain/                    Role, RoleTemplate, RoleAssignment, права и scope
   pagination/                параметры страниц, сортировка и Page[T]
   usecase/

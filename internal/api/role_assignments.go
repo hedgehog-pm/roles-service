@@ -15,10 +15,7 @@ type RoleAssignmentHandler struct {
 }
 
 func (h *RoleAssignmentHandler) AssignRole(ctx context.Context, request generated.AssignRoleRequestObject) (generated.AssignRoleResponseObject, error) {
-	actor, err := actorID(ctx)
-	if err != nil {
-		return nil, err
-	}
+	actor := actorID(ctx)
 
 	result, err := h.assignments.Assign(ctx, actor, request.RoleID, request.UserID)
 	if err != nil {
@@ -34,10 +31,7 @@ func (h *RoleAssignmentHandler) AssignRole(ctx context.Context, request generate
 }
 
 func (h *RoleAssignmentHandler) RevokeRole(ctx context.Context, request generated.RevokeRoleRequestObject) (generated.RevokeRoleResponseObject, error) {
-	actor, err := actorID(ctx)
-	if err != nil {
-		return nil, err
-	}
+	actor := actorID(ctx)
 
 	if err := h.assignments.Revoke(ctx, actor, request.RoleID, request.UserID); err != nil {
 		return nil, err

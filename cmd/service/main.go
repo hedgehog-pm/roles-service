@@ -2,12 +2,10 @@ package main
 
 import (
 	"context"
-	"errors"
 	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
 	"time"
 
@@ -64,23 +62,13 @@ func run() error {
 	assignmentHandler := api.NewRoleAssignmentHandler(roleassignment.New(assignments, transactor), listroleassignments.New(assignmentrepository.NewReader(pool), transactor))
 	handler := api.NewHandler(roleHandler, templateHandler, assignmentHandler, permissions)
 
-	var authenticate api.Authenticate
-
-	if rawID := os.Getenv("DEV_ACTOR_ID"); rawID != "" {
-		id, err := strconv.Atoi(rawID)
-		if err != nil || id <= 0 || id > 2147483647 {
-			return errors.New("DEV_ACTOR_ID must be an integer between 1 and 2147483647")
-		}
-
-		authenticate = func(context.Context, *http.Request) (int, error) { return id, nil }
-
-		slog.WarnContext(ctx, "local development authentication bypass enabled", "actor_id", id)
-	}
-
-	server, err := api.NewServer(handler, authenticate)
+	server, err := api.NewServer(handler)
 	if err != nil {
 		return err
 	}
+
+	server.Use(api.DevelopmentActor())
+	slog.WarnContext(ctx, "development authentication bypass enabled", "actor_id", 1)
 
 	address := os.Getenv("HTTP_ADDR")
 	if address == "" {
