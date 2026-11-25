@@ -158,7 +158,7 @@ Strict handlers и HTTP middleware: `internal/api/`.
 | GET, PUT, DELETE | /role-templates/{id} | Получение, изменение, удаление; обязательный system_id, при несовпадении 404 |
 | GET | /roles/{role_id}/assignments | Назначения роли |
 | PUT, DELETE | /roles/{role_id}/assignments/{user_id} | Назначение, отзыв |
-| GET | /users/{user_id}/role-assignments | Роли пользователя; scope_type и scope_id обязательны |
+| GET | /participants/{user_id}/role-assignments | Роли пользователя; scope_type и scope_id обязательны |
 | GET | /permissions | Каталог по scope_type |
 
 PUT роли/шаблона принимает expected_version в JSON, DELETE — в query-параметре.

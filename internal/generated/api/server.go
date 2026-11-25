@@ -262,6 +262,16 @@ type UserRoleAssignmentPage struct {
 	Total  int64                `json:"total"`
 }
 
+// ListUserAssignmentsParams defines parameters for ListUserAssignments.
+type ListUserAssignmentsParams struct {
+	Limit     *int      `form:"limit,omitempty" json:"limit,omitempty"`
+	Offset    *int      `form:"offset,omitempty" json:"offset,omitempty"`
+	ScopeType ScopeType `form:"scope_type" json:"scope_type"`
+
+	// ScopeID Requires scope_type.
+	ScopeID ID `form:"scope_id" json:"scope_id"`
+}
+
 // ListPermissionsParams defines parameters for ListPermissions.
 type ListPermissionsParams struct {
 	ScopeType ScopeType `form:"scope_type" json:"scope_type"`
@@ -347,16 +357,6 @@ type ListAssignmentsParams struct {
 	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
 }
 
-// ListUserAssignmentsParams defines parameters for ListUserAssignments.
-type ListUserAssignmentsParams struct {
-	Limit     *int      `form:"limit,omitempty" json:"limit,omitempty"`
-	Offset    *int      `form:"offset,omitempty" json:"offset,omitempty"`
-	ScopeType ScopeType `form:"scope_type" json:"scope_type"`
-
-	// ScopeID Requires scope_type.
-	ScopeID ID `form:"scope_id" json:"scope_id"`
-}
-
 // CreateTemplateJSONRequestBody defines body for CreateTemplate for application/json ContentType.
 type CreateTemplateJSONRequestBody = CreateTemplate
 
@@ -371,6 +371,9 @@ type UpdateRoleJSONRequestBody = UpdateRole
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+
+	// (GET /participants/{user_id}/role-assignments)
+	ListUserAssignments(ctx *echo.Context, userID ID, params ListUserAssignmentsParams) error
 
 	// (GET /permissions)
 	ListPermissions(ctx *echo.Context, params ListPermissionsParams) error
@@ -416,14 +419,57 @@ type ServerInterface interface {
 
 	// (PUT /roles/{role_id}/assignments/{user_id})
 	AssignRole(ctx *echo.Context, roleID ID, userID ID) error
-
-	// (GET /users/{user_id}/role-assignments)
-	ListUserAssignments(ctx *echo.Context, userID ID, params ListUserAssignmentsParams) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
 	Handler ServerInterface
+}
+
+// ListUserAssignments converts echo context to params.
+func (w *ServerInterfaceWrapper) ListUserAssignments(ctx *echo.Context) error {
+	var err error
+	// ------------- Path parameter "user_id" -------------
+	var userID ID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "user_id", ctx.Param("user_id"), &userID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "", ValueIsUnescaped: ctx.Request().URL.RawPath == ""})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter user_id: %s", err))
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListUserAssignmentsParams
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", ctx.QueryParams(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter limit: %s", err))
+	}
+
+	// ------------- Optional query parameter "offset" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "offset", ctx.QueryParams(), &params.Offset, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter offset: %s", err))
+	}
+
+	// ------------- Required query parameter "scope_type" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "scope_type", ctx.QueryParams(), &params.ScopeType, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter scope_type: %s", err))
+	}
+
+	// ------------- Required query parameter "scope_id" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "scope_id", ctx.QueryParams(), &params.ScopeID, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter scope_id: %s", err))
+	}
+
+	// Invoke the callback with all the unmarshaled arguments
+	err = w.Handler.ListUserAssignments(ctx, userID, params)
+	return err
 }
 
 // ListPermissions converts echo context to params.
@@ -847,52 +893,6 @@ func (w *ServerInterfaceWrapper) AssignRole(ctx *echo.Context) error {
 	return err
 }
 
-// ListUserAssignments converts echo context to params.
-func (w *ServerInterfaceWrapper) ListUserAssignments(ctx *echo.Context) error {
-	var err error
-	// ------------- Path parameter "user_id" -------------
-	var userID ID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "user_id", ctx.Param("user_id"), &userID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: "", ValueIsUnescaped: ctx.Request().URL.RawPath == ""})
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter user_id: %s", err))
-	}
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params ListUserAssignmentsParams
-	// ------------- Optional query parameter "limit" -------------
-
-	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", ctx.QueryParams(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter limit: %s", err))
-	}
-
-	// ------------- Optional query parameter "offset" -------------
-
-	err = runtime.BindQueryParameterWithOptions("form", true, false, "offset", ctx.QueryParams(), &params.Offset, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter offset: %s", err))
-	}
-
-	// ------------- Required query parameter "scope_type" -------------
-
-	err = runtime.BindQueryParameterWithOptions("form", true, true, "scope_type", ctx.QueryParams(), &params.ScopeType, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter scope_type: %s", err))
-	}
-
-	// ------------- Required query parameter "scope_id" -------------
-
-	err = runtime.BindQueryParameterWithOptions("form", true, true, "scope_id", ctx.QueryParams(), &params.ScopeID, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter scope_id: %s", err))
-	}
-
-	// Invoke the callback with all the unmarshaled arguments
-	err = w.Handler.ListUserAssignments(ctx, userID, params)
-	return err
-}
-
 // This is a simple interface which specifies echo.Route addition functions which
 // are present on both echo.Echo and echo.Group, since we want to allow using
 // either of them for path registration
@@ -954,9 +954,88 @@ func RegisterHandlersWithOptions(router EchoRouter, si ServerInterface, options 
 	router.GET(options.BaseURL+"/roles/:role_id/assignments", wrapper.ListAssignments, options.OperationMiddlewares["ListAssignments"]...)
 	router.DELETE(options.BaseURL+"/roles/:role_id/assignments/:user_id", wrapper.RevokeRole, options.OperationMiddlewares["RevokeRole"]...)
 	router.PUT(options.BaseURL+"/roles/:role_id/assignments/:user_id", wrapper.AssignRole, options.OperationMiddlewares["AssignRole"]...)
-	router.GET(options.BaseURL+"/users/:user_id/role-assignments", wrapper.ListUserAssignments, options.OperationMiddlewares["ListUserAssignments"]...)
+	router.GET(options.BaseURL+"/participants/:user_id/role-assignments", wrapper.ListUserAssignments, options.OperationMiddlewares["ListUserAssignments"]...)
 	router.GET(options.BaseURL+"/role-assignments", wrapper.ListScopeAssignments, options.OperationMiddlewares["ListScopeAssignments"]...)
 
+}
+
+type ListUserAssignmentsRequestObject struct {
+	UserID ID `json:"user_id"`
+	Params ListUserAssignmentsParams
+}
+
+type ListUserAssignmentsResponseObject interface {
+	VisitListUserAssignmentsResponse(w http.ResponseWriter) error
+}
+
+type ListUserAssignments200JSONResponse UserRoleAssignmentPage
+
+func (response ListUserAssignments200JSONResponse) VisitListUserAssignmentsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListUserAssignments400JSONResponse Error
+
+func (response ListUserAssignments400JSONResponse) VisitListUserAssignmentsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListUserAssignments401JSONResponse Error
+
+func (response ListUserAssignments401JSONResponse) VisitListUserAssignmentsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListUserAssignments500JSONResponse Error
+
+func (response ListUserAssignments500JSONResponse) VisitListUserAssignmentsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListUserAssignments503JSONResponse Error
+
+func (response ListUserAssignments503JSONResponse) VisitListUserAssignmentsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(503)
+	_, err := buf.WriteTo(w)
+	return err
 }
 
 type ListPermissionsRequestObject struct {
@@ -2302,87 +2381,11 @@ func (response AssignRole503JSONResponse) VisitAssignRoleResponse(w http.Respons
 	return err
 }
 
-type ListUserAssignmentsRequestObject struct {
-	UserID ID `json:"user_id"`
-	Params ListUserAssignmentsParams
-}
-
-type ListUserAssignmentsResponseObject interface {
-	VisitListUserAssignmentsResponse(w http.ResponseWriter) error
-}
-
-type ListUserAssignments200JSONResponse UserRoleAssignmentPage
-
-func (response ListUserAssignments200JSONResponse) VisitListUserAssignmentsResponse(w http.ResponseWriter) error {
-
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(response); err != nil {
-		return err
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-	_, err := buf.WriteTo(w)
-	return err
-}
-
-type ListUserAssignments400JSONResponse Error
-
-func (response ListUserAssignments400JSONResponse) VisitListUserAssignmentsResponse(w http.ResponseWriter) error {
-
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(response); err != nil {
-		return err
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(400)
-	_, err := buf.WriteTo(w)
-	return err
-}
-
-type ListUserAssignments401JSONResponse Error
-
-func (response ListUserAssignments401JSONResponse) VisitListUserAssignmentsResponse(w http.ResponseWriter) error {
-
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(response); err != nil {
-		return err
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(401)
-	_, err := buf.WriteTo(w)
-	return err
-}
-
-type ListUserAssignments500JSONResponse Error
-
-func (response ListUserAssignments500JSONResponse) VisitListUserAssignmentsResponse(w http.ResponseWriter) error {
-
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(response); err != nil {
-		return err
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(500)
-	_, err := buf.WriteTo(w)
-	return err
-}
-
-type ListUserAssignments503JSONResponse Error
-
-func (response ListUserAssignments503JSONResponse) VisitListUserAssignmentsResponse(w http.ResponseWriter) error {
-
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(response); err != nil {
-		return err
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(503)
-	_, err := buf.WriteTo(w)
-	return err
-}
-
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
+
+	// (GET /participants/{user_id}/role-assignments)
+	ListUserAssignments(ctx context.Context, request ListUserAssignmentsRequestObject) (ListUserAssignmentsResponseObject, error)
 
 	// (GET /permissions)
 	ListPermissions(ctx context.Context, request ListPermissionsRequestObject) (ListPermissionsResponseObject, error)
@@ -2428,9 +2431,6 @@ type StrictServerInterface interface {
 
 	// (PUT /roles/{role_id}/assignments/{user_id})
 	AssignRole(ctx context.Context, request AssignRoleRequestObject) (AssignRoleResponseObject, error)
-
-	// (GET /users/{user_id}/role-assignments)
-	ListUserAssignments(ctx context.Context, request ListUserAssignmentsRequestObject) (ListUserAssignmentsResponseObject, error)
 }
 
 type StrictHandlerFunc func(ctx *echo.Context, request any) (any, error)
@@ -2443,6 +2443,32 @@ func NewStrictHandler(ssi StrictServerInterface, middlewares []StrictMiddlewareF
 type strictHandler struct {
 	ssi         StrictServerInterface
 	middlewares []StrictMiddlewareFunc
+}
+
+// ListUserAssignments operation middleware
+func (sh *strictHandler) ListUserAssignments(ctx *echo.Context, userID ID, params ListUserAssignmentsParams) error {
+	var request ListUserAssignmentsRequestObject
+
+	request.UserID = userID
+	request.Params = params
+
+	handler := func(ctx *echo.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.ListUserAssignments(ctx.Request().Context(), request.(ListUserAssignmentsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListUserAssignments")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return err
+	} else if validResponse, ok := response.(ListUserAssignmentsResponseObject); ok {
+		return validResponse.VisitListUserAssignmentsResponse(ctx.Response())
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
 }
 
 // ListPermissions operation middleware
@@ -2887,67 +2913,41 @@ func (sh *strictHandler) AssignRole(ctx *echo.Context, roleID ID, userID ID) err
 	return nil
 }
 
-// ListUserAssignments operation middleware
-func (sh *strictHandler) ListUserAssignments(ctx *echo.Context, userID ID, params ListUserAssignmentsParams) error {
-	var request ListUserAssignmentsRequestObject
-
-	request.UserID = userID
-	request.Params = params
-
-	handler := func(ctx *echo.Context, request interface{}) (interface{}, error) {
-		return sh.ssi.ListUserAssignments(ctx.Request().Context(), request.(ListUserAssignmentsRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "ListUserAssignments")
-	}
-
-	response, err := handler(ctx, request)
-
-	if err != nil {
-		return err
-	} else if validResponse, ok := response.(ListUserAssignmentsResponseObject); ok {
-		return validResponse.VisitListUserAssignmentsResponse(ctx.Response())
-	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
-	}
-	return nil
-}
-
 // Base64 encoded, compressed with deflate, json marshaled OpenAPI spec.
 // Stored as a slice of fixed-width chunks rather than one concatenated
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"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",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

@@ -18,7 +18,7 @@
 | `GET /roles/{role_id}/assignments` | path `role_id` | `200`, AssignmentPage |
 | `PUT /roles/{role_id}/assignments/{user_id}` | path IDs, без тела | `201` или `200`, RoleAssignment |
 | `DELETE /roles/{role_id}/assignments/{user_id}` | path IDs | `204` |
-| `GET /users/{user_id}/role-assignments` | query `scope_type`, `scope_id` | `200`, UserRoleAssignmentPage |
+| `GET /participants/{user_id}/role-assignments` | query `scope_type`, `scope_id` | `200`, UserRoleAssignmentPage |
 | `GET /role-assignments` | query `scope_type`, `scope_id` | `200`, UserRoleAssignmentPage |
 
 ID — целые числа от 1 до 2147483647. `scope_type` и `target_scope_type`: `system`, `workspace`, `project`. `scope_id` обозначает ресурс соответствующего типа. У шаблона `system_id` — контекст хранения шаблона, а `target_scope_type` — тип будущей роли. Для GET/PUT/DELETE шаблона чужой `system_id` даёт `404`.

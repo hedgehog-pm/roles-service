@@ -1135,7 +1135,7 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/Error'
                     description: Error
-    /users/{user_id}/role-assignments:
+    /participants/{user_id}/role-assignments:
         get:
             operationId: ListUserAssignments
             parameters:
